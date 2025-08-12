@@ -1,6 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.const import CONF_ID, CONF_HOST, CONF_PORT
+from esphome.const import CONF_ID
 from esphome.components import sensor, binary_sensor, text_sensor
 
 DEPENDENCIES = []
@@ -11,8 +11,8 @@ DometicCfxWifi = dometic_cfx_wifi_ns.class_("DometicCfxWifi", cg.Component)
 
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(DometicCfxWifi),
-    cv.Required(CONF_HOST): cv.string,
-    cv.Required(CONF_PORT): cv.port,
+    cv.Required("host"): cv.string,
+    cv.Required("port"): cv.port,
     cv.Optional("sensor_comp0_temp"): sensor.sensor_schema(),
     cv.Optional("sensor_comp1_temp"): sensor.sensor_schema(),
     cv.Optional("sensor_comp0_set_temp"): sensor.sensor_schema(),
@@ -30,8 +30,8 @@ CONFIG_SCHEMA = cv.Schema({
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-    cg.add(var.set_host(config[CONF_HOST]))
-    cg.add(var.set_port(config[CONF_PORT]))
+    cg.add(var.set_host(config["host"]))
+    cg.add(var.set_port(config["port"]))
 
     if "sensor_comp0_temp" in config:
         sens = await sensor.new_sensor(config["sensor_comp0_temp"])
