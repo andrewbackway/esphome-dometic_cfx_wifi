@@ -1,4 +1,4 @@
-#include "dometic-cfx-wifi.h"
+#include "dometic-cfx3-wifi.h"
 
 const char* DometicCfxWifi::DDMP_KEY = "ddmp";
 const char* DometicCfxWifi::CARRIAGE_RETURN = "\r";
