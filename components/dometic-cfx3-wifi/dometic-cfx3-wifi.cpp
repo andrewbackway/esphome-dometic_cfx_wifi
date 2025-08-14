@@ -379,7 +379,7 @@ bool DometicCFXComponent::send_json_(const std::string &json) {
     return false;
   }
 
-  std::string framed = json + "\r\r";
+  std::string framed = json + "\r";
 
   ESP_LOGD(TAG, "Sending JSON (2): %s", framed.c_str());
 
