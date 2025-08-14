@@ -384,7 +384,7 @@ bool DometicCFXComponent::send_json_(const std::string &json) {
     ESP_LOGD(TAG, "Before creating framed string");
     framed = json + "\r";
     ESP_LOGD(TAG, "After creating framed string");
-  } catch (const std::exception &e) {
+  } catch (const std::exception e) {
     ESP_LOGE(TAG, "Exception in string concatenation: %s", e.what());
     return false;
   }
