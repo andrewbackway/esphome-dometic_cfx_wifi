@@ -1,9 +1,18 @@
-
 #pragma once
 
 #include "esphome/core/component.h"
+#include "esphome/core/log.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/binary_sensor/binary_sensor.h"
+#include "esphome/components/text_sensor/text_sensor.h"
+#include <vector>
 #include <string>
+
+// ESP-IDF / lwIP
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 namespace esphome {
 namespace dometic_cfx {
@@ -13,31 +22,132 @@ class DometicCFXComponent : public Component {
   void set_host(const std::string &host) { host_ = host; }
   void set_port(uint16_t port) { port_ = port; }
 
-  /*
-  void set_compartment_temp_sensor(sensor::Sensor *sensor) { compartment_temp_ = sensor; }
-  void set_ambient_temp_sensor(sensor::Sensor *sensor) { ambient_temp_ = sensor; }
-  void set_voltage_sensor(sensor::Sensor *sensor) { voltage_ = sensor; }
-  void set_door_status_sensor(sensor::Sensor *sensor) { door_status_ = sensor; }
-  */
+  // === Sensors (floats) ===
+  // Compartment temps & setpoints
+  sensor::Sensor *comp0_temp{nullptr};
+  sensor::Sensor *comp1_temp{nullptr};
+  sensor::Sensor *comp0_set_temp{nullptr};
+  sensor::Sensor *comp1_set_temp{nullptr};
+
+  // Power & electrical
+  sensor::Sensor *dc_voltage{nullptr};
+  sensor::Sensor *battery_protection_level{nullptr}; // raw uint8
+  sensor::Sensor *power_source{nullptr};             // raw int8 mapping unknown
+  sensor::Sensor *compartment_count{nullptr};
+  sensor::Sensor *icemaker_count{nullptr};
+
+  // History (latest entries)
+  sensor::Sensor *comp0_hist_hour_latest{nullptr};
+  sensor::Sensor *comp1_hist_hour_latest{nullptr};
+  sensor::Sensor *comp0_hist_day_latest{nullptr};
+  sensor::Sensor *comp1_hist_day_latest{nullptr};
+  sensor::Sensor *comp0_hist_week_latest{nullptr};
+  sensor::Sensor *comp1_hist_week_latest{nullptr};
+  sensor::Sensor *dc_current_hist_hour_latest{nullptr};
+
+  // Open-counts (to mirror exporter’s counters)
+  sensor::Sensor *comp0_open_count{nullptr};
+  sensor::Sensor *comp1_open_count{nullptr};
+
+  // Presented temperature unit (raw)
+  sensor::Sensor *presented_temp_unit{nullptr};
+
+  // === Binary sensors ===
+  binary_sensor::BinarySensor *cooler_power{nullptr};
+  binary_sensor::BinarySensor *comp0_power{nullptr};
+  binary_sensor::BinarySensor *comp1_power{nullptr};
+  binary_sensor::BinarySensor *comp0_door_open{nullptr};
+  binary_sensor::BinarySensor *comp1_door_open{nullptr};
+  binary_sensor::BinarySensor *icemaker_power{nullptr};
+  binary_sensor::BinarySensor *wifi_mode{nullptr};
+  binary_sensor::BinarySensor *bluetooth_mode{nullptr};
+  binary_sensor::BinarySensor *wifi_ap_connected{nullptr};
+
+  // Errors (binary)
+  binary_sensor::BinarySensor *err_comm_alarm{nullptr};
+  binary_sensor::BinarySensor *err_ntc_open_large{nullptr};
+  binary_sensor::BinarySensor *err_ntc_short_large{nullptr};
+  binary_sensor::BinarySensor *err_solenoid_valve{nullptr};
+  binary_sensor::BinarySensor *err_ntc_open_small{nullptr};
+  binary_sensor::BinarySensor *err_ntc_short_small{nullptr};
+  binary_sensor::BinarySensor *err_fan_overvoltage{nullptr};
+  binary_sensor::BinarySensor *err_compressor_start_fail{nullptr};
+  binary_sensor::BinarySensor *err_compressor_speed{nullptr};
+  binary_sensor::BinarySensor *err_controller_overtemp{nullptr};
+
+  // Alerts (binary)
+  binary_sensor::BinarySensor *alert_temp_dcm{nullptr};
+  binary_sensor::BinarySensor *alert_temp_cc{nullptr};
+  binary_sensor::BinarySensor *alert_door{nullptr};
+  binary_sensor::BinarySensor *alert_voltage{nullptr};
+
+  // === Text sensors ===
+  text_sensor::TextSensor *product_serial{nullptr};
+  text_sensor::TextSensor *device_name{nullptr};
+  // Arrays/strings surfaced as JSON/strings
+  text_sensor::TextSensor *comp0_recommended_range{nullptr};
+  text_sensor::TextSensor *comp1_recommended_range{nullptr};
+  text_sensor::TextSensor *comp0_temp_range{nullptr};
+  text_sensor::TextSensor *comp1_temp_range{nullptr};
+  text_sensor::TextSensor *comp0_hist_hour_json{nullptr};
+  text_sensor::TextSensor *comp1_hist_hour_json{nullptr};
+  text_sensor::TextSensor *comp0_hist_day_json{nullptr};
+  text_sensor::TextSensor *comp1_hist_day_json{nullptr};
+  text_sensor::TextSensor *comp0_hist_week_json{nullptr};
+  text_sensor::TextSensor *comp1_hist_week_json{nullptr};
+  text_sensor::TextSensor *dc_current_hist_hour_json{nullptr};
+  text_sensor::TextSensor *dc_current_hist_day_json{nullptr};
+  text_sensor::TextSensor *dc_current_hist_week_json{nullptr};
+
+  // WiFi settings (strings — warning: may be sensitive on some setups)
+  text_sensor::TextSensor *station_ssid_0{nullptr};
+  text_sensor::TextSensor *station_ssid_1{nullptr};
+  text_sensor::TextSensor *station_ssid_2{nullptr};
+  text_sensor::TextSensor *station_password_0{nullptr};
+  text_sensor::TextSensor *station_password_1{nullptr};
+  text_sensor::TextSensor *station_password_2{nullptr};
+  text_sensor::TextSensor *station_password_3{nullptr};
+  text_sensor::TextSensor *station_password_4{nullptr};
+  text_sensor::TextSensor *cfx_direct_password_0{nullptr};
+  text_sensor::TextSensor *cfx_direct_password_1{nullptr};
+  text_sensor::TextSensor *cfx_direct_password_2{nullptr};
+  text_sensor::TextSensor *cfx_direct_password_3{nullptr};
+  text_sensor::TextSensor *cfx_direct_password_4{nullptr};
+
+  // Component
   void setup() override;
   void loop() override;
+  float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
 
  protected:
   std::string host_;
-  uint16_t port_;
-  int socket_ = -1;
+  uint16_t port_{13142};
 
-  void connect_();
-  void request_data_();
-  void parse_response_(const std::vector<uint8_t> &data);
+  int sock_{-1};
+  uint32_t last_activity_ms_{0};
+  uint32_t last_ping_ms_{0};
+  bool comp0_door_prev_{false};
+  bool comp1_door_prev_{false};
 
-  /*
-  sensor::Sensor *compartment_temp_ = nullptr;
-  sensor::Sensor *ambient_temp_ = nullptr;
-  sensor::Sensor *voltage_ = nullptr;
-  sensor::Sensor *door_status_ = nullptr;
-*/
+  bool connect_();
+  void close_();
+  bool send_json_(const std::string &json);
+  bool send_ack_();
+  bool send_ping_();
+  bool send_subscribe_all_();
+
+  bool recv_line_(std::string &out); // reads up to '\r'
+  bool handle_payload_(const std::string &line);
+
+  // decoding helpers
+  static float int16_deci_to_float_(int b0, int b1);
+  static std::string to_json_array_(const std::vector<int> &vals);
+
+  // publish helpers
+  void publish_bool_(binary_sensor::BinarySensor *b, bool v);
+  void publish_float_(sensor::Sensor *s, float v);
+  void publish_text_(text_sensor::TextSensor *t, const std::string &v);
 };
 
-}  // namespace dometic_cfx
+}  // namespace cfx3
 }  // namespace esphome
