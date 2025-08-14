@@ -14,10 +14,12 @@ static const char *TAG = "dometic-cfx3";
 
 void DometicCFXComponent::setup() {
   ESP_LOGI(TAG, "Setting up Dometic CFX3 WiFi component");
-  this->connect_();
+  //this->connect_();
 }
 
 void DometicCFXComponent::loop() {
+  return;
+  
   static uint32_t last_poll = 0;
   const uint32_t interval = 60000;  // Poll every 60 seconds
 
