@@ -352,7 +352,7 @@ void DometicCFXComponent::close_() {
 bool DometicCFXComponent::send_json_(const std::string &json) {
   if (this->sock_ < 0) return false;
 
-  ESP_LOGD(TAG, "Sending JSON: %s", framed.c_str());
+  ESP_LOGD(TAG, "Sending JSON: %s", json);
 
   std::string framed = json + "\r";
   bool ok = false;
