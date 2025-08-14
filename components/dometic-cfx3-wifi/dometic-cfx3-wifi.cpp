@@ -400,7 +400,7 @@ bool DometicCFXComponent::send_subscribe_all_() {
     // only subscribe to topics that are relevant
     if ( std::string(t.name) == "SUBSCRIBE_APP_DZ" ||
           //std::string(t.name) == "BATTERY_VOLTAGE_LEVEL" ||
-          std::string(t.name) == "PRODUCT_SERIAL_NUMBER" )} //||
+          std::string(t.name) == "PRODUCT_SERIAL_NUMBER" ) { //||
           //std::string(t.name) == "COMPARTMENT_0_MEASURED_TEMPERATURE" ||
           //std::string(t.name) == "COMPARTMENT_1_MEASURED_TEMPERATURE" ||
           //std::string(t.name) == "COMPARTMENT_0_DOOR_OPEN" ||
