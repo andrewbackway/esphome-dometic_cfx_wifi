@@ -288,14 +288,18 @@ std::string DometicCFXComponent::to_json_array_(const std::vector<int> &vals) {
 }
 
 void DometicCFXComponent::publish_bool_(binary_sensor::BinarySensor *b, bool v) {
+  if (v) ESP_LOGD(TAG, "Publishing bool: %s", b->get_name().c_str());
+  else ESP_LOGD(TAG, "Publishing bool: %s = false", b->get_name().c_str());
   if (b) b->publish_state(v);
 }
 
 void DometicCFXComponent::publish_float_(sensor::Sensor *s, float v) {
+  ESP_LOGD(TAG, "Publishing float: %s = %f", s->get_name().c_str(), v);
   if (s) s->publish_state(v);
 }
 
 void DometicCFXComponent::publish_text_(text_sensor::TextSensor *t, const std::string &v) {
+  ESP_LOGD(TAG, "Publishing text: %s = %s", t->get_name().c_str(), v.c_str());
   if (t) t->publish_state(v);
 }
 
