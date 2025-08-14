@@ -201,7 +201,7 @@ bool DometicCFXComponent::connect_task_() {
   ESP_LOGI(TAG, "Connecting to %s:%u", host_.c_str(), (unsigned)port_);
   this->close_();
 
-  ESP_LOGI(TAG, "Socket created");
+  ESP_LOGI(TAG, "Preparing Socket");
 
   this->sock_ = ::socket(AF_INET, SOCK_STREAM, 0);
   if (this->sock_ < 0) {
@@ -238,11 +238,15 @@ bool DometicCFXComponent::connect_task_() {
   if (!this->recv_line_once_(line)) { this->close_(); return false; }
   if (!this->handle_payload_inline_(line)) { this->close_(); return false; }
 
+  ESP_LOGI(TAG, "Handshake NOP received: %s", line.c_str());
+
   // Send PING, wait ACK
   if (!this->send_ping_()) { this->close_(); return false; }
   if (!this->recv_line_once_(line)) { this->close_(); return false; }
   if (!this->handle_payload_inline_(line)) { this->close_(); return false; }
 
+  ESP_LOGI(TAG, "Send PING, wait for ACK completed");
+  
   // Subscribe to all
   if (!this->send_subscribe_all_()) { this->close_(); return false; }
 
@@ -379,11 +383,23 @@ bool DometicCFXComponent::send_ping_() {
 }
 
 bool DometicCFXComponent::send_subscribe_all_() {
-  ESP_LOGI(TAG, "Sending SUBSCRIBE to all");
+  ESP_LOGI(TAG, "Sending SUBSCRIBE commands");
   for (const Topic &t : TOPICS) {
+    /*
     if (std::string(t.name) == "SUBSCRIBE_APP_SZ" ||
         std::string(t.name) == "SUBSCRIBE_APP_SZI" ||
         std::string(t.name) == "SUBSCRIBE_APP_DZ") {
+    */
+    if ( std::string(t.name) == SUBSCRIBE_APP_DZ
+          std::string(t.name) == BATTERY_VOLTAGE_LEVEL
+          std::string(t.name) == PRODUCT_SERIAL_NUMBER
+          std::string(t.name) == COMPARTMENT_0_MEASURED_TEMPERATURE
+          std::string(t.name) == COMPARTMENT_1_MEASURED_TEMPERATURE
+          std::string(t.name) == COMPARTMENT_0_DOOR_OPEN
+          std::string(t.name) == COMPARTMENT_1_DOOR_OPEN
+          std::string(t.name) == COMPARTMENT_0_SET_TEMPERATURE
+          std::string(t.name) == COMPARTMENT_1_SET_TEMPERATURE
+          std::string(t.name) == DC_CURRENT_HISTORY_HOUR ) {
       std::string payload = esphome::json::build_json([&](JsonObject root) {
         JsonArray arr = root["ddmp"].to<JsonArray>();
         arr.add((int) SUBSCRIBE);
