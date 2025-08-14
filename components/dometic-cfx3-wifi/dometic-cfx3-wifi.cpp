@@ -351,6 +351,9 @@ void DometicCFXComponent::close_() {
 
 bool DometicCFXComponent::send_json_(const std::string &json) {
   if (this->sock_ < 0) return false;
+
+  ESP_LOGD(TAG, "Sending JSON: %s", framed.c_str());
+
   std::string framed = json + "\r";
   bool ok = false;
   if (this->send_mutex_ && xSemaphoreTake(this->send_mutex_, pdMS_TO_TICKS(200)) == pdTRUE) {
@@ -402,14 +405,17 @@ bool DometicCFXComponent::send_subscribe_all_() {
           std::string(t.name) == "COMPARTMENT_0_SET_TEMPERATURE" ||
           std::string(t.name) == "COMPARTMENT_1_SET_TEMPERATURE" ||
           std::string(t.name) == "DC_CURRENT_HISTORY_HOUR" ) {
-      std::string payload = esphome::json::build_json([&](JsonObject root) {
-        JsonArray arr = root["ddmp"].to<JsonArray>();
-        arr.add((int) SUBSCRIBE);
-        arr.add(t.a);
-        arr.add(t.b);
-        arr.add(t.c);
-        arr.add(t.d);
-      });
+
+        ESP_LOGI(TAG, "Sending SUBSCRIBE for topic: %s", t.name);
+        
+        std::string payload = esphome::json::build_json([&](JsonObject root) {
+          JsonArray arr = root["ddmp"].to<JsonArray>();
+          arr.add((int) SUBSCRIBE);
+          arr.add(t.a);
+          arr.add(t.b);
+          arr.add(t.c);
+          arr.add(t.d);
+        });
       if (!this->send_json_(payload)) return false;
       vTaskDelay(pdMS_TO_TICKS(20));
     }
