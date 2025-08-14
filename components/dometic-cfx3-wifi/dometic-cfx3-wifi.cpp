@@ -262,6 +262,7 @@ bool DometicCFXComponent::connect_task_() {
 void DometicCFXComponent::poll_recv_() {
   if (this->sock_ < 0) return;
 
+  ESP_LOGD(TAG, "Receiving data (1)...");
 
   char buf[128];
   // recv() will return -1 with EWOULDBLOCK after ~timeout or 0 on close
@@ -358,9 +359,10 @@ void DometicCFXComponent::close_() {
 bool DometicCFXComponent::send_json_(const std::string &json) {
   if (this->sock_ < 0) return false;
 
-  ESP_LOGD(TAG, "Sending JSON: %s", json.c_str());
-
   std::string framed = json + "\r";
+
+  ESP_LOGD(TAG, "Sending JSON: %s", framed.c_str());
+
   bool ok = false;
   if (this->send_mutex_ && xSemaphoreTake(this->send_mutex_, pdMS_TO_TICKS(200)) == pdTRUE) {
     ssize_t n = ::send(this->sock_, framed.data(), framed.size(), 0);
@@ -368,6 +370,7 @@ bool DometicCFXComponent::send_json_(const std::string &json) {
     xSemaphoreGive(this->send_mutex_);
   } else {
     // As a fallback try unsynchronized (should be rare)
+    ESP_LOGW(TAG, "send_mutex_ not available, trying unsynchronized send");
     ssize_t n = ::send(this->sock_, framed.data(), framed.size(), 0);
     ok = (n == (ssize_t)framed.size());
   }
@@ -396,11 +399,7 @@ bool DometicCFXComponent::send_ping_() {
 bool DometicCFXComponent::send_subscribe_all_() {
   ESP_LOGI(TAG, "Sending SUBSCRIBE commands");
   for (const Topic &t : TOPICS) {
-    /*
-    if (std::string(t.name) == "SUBSCRIBE_APP_SZ" ||
-        std::string(t.name) == "SUBSCRIBE_APP_SZI" ||
-        std::string(t.name) == "SUBSCRIBE_APP_DZ") {
-    */
+    // only subscribe to topics that are relevant
     if ( std::string(t.name) == "SUBSCRIBE_APP_DZ" ||
           std::string(t.name) == "BATTERY_VOLTAGE_LEVEL" ||
           std::string(t.name) == "PRODUCT_SERIAL_NUMBER" ||
