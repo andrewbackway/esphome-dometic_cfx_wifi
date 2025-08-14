@@ -265,15 +265,6 @@ void DometicCFXComponent::poll_recv_() {
   char buf[128];
   // recv() will return -1 with EWOULDBLOCK after ~timeout or 0 on close
   ssize_t n = ::recv(this->sock_, buf, sizeof(buf), 0);
-  
-  if (n == -1) {
-    ESP_LOGW(TAG, "recv failed: errno=%d (%s)", errno, strerror(errno));
-  } else if (n == 0) {
-    ESP_LOGW(TAG, "Connection closed by peer");
-  } else {
-    ESP_LOGD(TAG, "Received %zd bytes", n);
-  }
-
   if (n == 0) {
     ESP_LOGW(TAG, "Peer closed connection");
     this->close_();
