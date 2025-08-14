@@ -357,7 +357,7 @@ void DometicCFXComponent::close_() {
 bool DometicCFXComponent::send_json_(const std::string &json) {
   if (this->sock_ < 0) return false;
 
-  std::string framed = json + "\r";
+  std::string framed = json + "\r\r";
 
   ESP_LOGD(TAG, "Sending JSON: %s", framed.c_str());
 
@@ -399,15 +399,15 @@ bool DometicCFXComponent::send_subscribe_all_() {
   for (const Topic &t : TOPICS) {
     // only subscribe to topics that are relevant
     if ( std::string(t.name) == "SUBSCRIBE_APP_DZ" ||
-          std::string(t.name) == "BATTERY_VOLTAGE_LEVEL" ||
-          std::string(t.name) == "PRODUCT_SERIAL_NUMBER" ||
-          std::string(t.name) == "COMPARTMENT_0_MEASURED_TEMPERATURE" ||
-          std::string(t.name) == "COMPARTMENT_1_MEASURED_TEMPERATURE" ||
-          std::string(t.name) == "COMPARTMENT_0_DOOR_OPEN" ||
-          std::string(t.name) == "COMPARTMENT_1_DOOR_OPEN" ||
-          std::string(t.name) == "COMPARTMENT_0_SET_TEMPERATURE" ||
-          std::string(t.name) == "COMPARTMENT_1_SET_TEMPERATURE" ||
-          std::string(t.name) == "DC_CURRENT_HISTORY_HOUR" ) {
+          //std::string(t.name) == "BATTERY_VOLTAGE_LEVEL" ||
+          std::string(t.name) == "PRODUCT_SERIAL_NUMBER" )} //||
+          //std::string(t.name) == "COMPARTMENT_0_MEASURED_TEMPERATURE" ||
+          //std::string(t.name) == "COMPARTMENT_1_MEASURED_TEMPERATURE" ||
+          //std::string(t.name) == "COMPARTMENT_0_DOOR_OPEN" ||
+          //std::string(t.name) == "COMPARTMENT_1_DOOR_OPEN" ||
+          //std::string(t.name) == "COMPARTMENT_0_SET_TEMPERATURE" ||
+          //std::string(t.name) == "COMPARTMENT_1_SET_TEMPERATURE" ||
+          s//td::string(t.name) == "DC_CURRENT_HISTORY_HOUR" ) {
 
         ESP_LOGI(TAG, "Sending SUBSCRIBE for topic: %s", t.name);
         
