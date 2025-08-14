@@ -103,14 +103,16 @@ void DometicCFXComponent::parse_response_(const std::vector<uint8_t> &data) {
   ESP_LOGI(TAG, "Voltage: %.2f V", voltage);
   ESP_LOGI(TAG, "Door Status: %s", door_open ? "Open" : "Closed");
 
+  /*
   if (this->compartment_temp_ != nullptr)
     this->compartment_temp_->publish_state(compartment_temp);
-  if (this->ambient_temp_ != nullptr)
-    this->ambient_temp_->publish_state(ambient_temp);
+  #if (this->ambient_temp_ != nullptr)
+  #  this->ambient_temp_->publish_state(ambient_temp);
   if (this->voltage_ != nullptr)
     this->voltage_->publish_state(voltage);
   if (this->door_status_ != nullptr)
     this->door_status_->publish_state(door_open ? 1.0f : 0.0f);
+  */
 }
 
 }  // namespace dometic_cfx
