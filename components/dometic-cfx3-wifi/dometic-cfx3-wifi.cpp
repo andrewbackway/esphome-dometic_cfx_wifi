@@ -139,7 +139,7 @@ void DometicCFXComponent::setup() {
       [](void *param) {
         static_cast<DometicCFXComponent*>(param)->socket_task_();
       },
-      "cfx3_socket",
+      "dometic-cfx3-socket",
       8192,
       this,
       4,                          // priority
@@ -186,10 +186,10 @@ void DometicCFXComponent::socket_task_() {
     // Read bytes with short timeout and assemble lines
     this->poll_recv_();                 // pushes complete lines to queue
 
-    // Idle timeout -> force reconnect
-    //if (now - this->last_activity_ms_ > 60000) {
-    if (now - last_activity_ms_ > 60000) {
-      ESP_LOGW(TAG, "No activity, reconnecting …");
+    // Idle timeout -> force reconnect (60 secs)
+    if (now - this->last_activity_ms_ > 60000) {
+      ESP_LOGI(TAG, "CHECK %u - %u", now, this->last_activity_ms_);
+      ESP_LOGW(TAG, "No activity, reconnecting...");
       this->close_();
       // loop continues and tries reconnect
     }
@@ -244,10 +244,8 @@ bool DometicCFXComponent::connect_task_() {
   // Subscribe to all
   if (!this->send_subscribe_all_()) { this->close_(); return false; }
 
+  this->last_activity_ms_ = millis();
   ESP_LOGI(TAG, "Connected & subscribed.");
-
-  //this->last_activity_ms_ = millis();
-  last_activity_ms_ = millis();
 
   return true;
 }
