@@ -187,7 +187,8 @@ void DometicCFXComponent::socket_task_() {
     this->poll_recv_();                 // pushes complete lines to queue
 
     // Idle timeout -> force reconnect
-    if (now - this->last_activity_ms_ > 60000) {
+    //if (now - this->last_activity_ms_ > 60000) {
+    if (now - last_activity_ms_ > 60000) {
       ESP_LOGW(TAG, "No activity, reconnecting …");
       this->close_();
       // loop continues and tries reconnect
@@ -243,8 +244,11 @@ bool DometicCFXComponent::connect_task_() {
   // Subscribe to all
   if (!this->send_subscribe_all_()) { this->close_(); return false; }
 
-  this->last_activity_ms_ = millis();
   ESP_LOGI(TAG, "Connected & subscribed.");
+
+  //this->last_activity_ms_ = millis();
+  last_activity_ms_ = millis();
+
   return true;
 }
 
