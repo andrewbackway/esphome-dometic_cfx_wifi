@@ -384,7 +384,7 @@ bool DometicCFXComponent::send_json_(const std::string &json) {
   framed = json + "\r";
   ESP_LOGD(TAG, "After creating framed string");
 
-  ESP_LOGD(TAG, "Sending JSON (2) (size=%u): %s", framed.size(), framed.c_str());
+  //ESP_LOGD(TAG, "Sending JSON (2) (size=%u): %s", framed.size(), framed.c_str());
 
   bool ok = false;
   if (this->send_mutex_ && xSemaphoreTake(this->send_mutex_, pdMS_TO_TICKS(200)) == pdTRUE) {
@@ -397,6 +397,8 @@ bool DometicCFXComponent::send_json_(const std::string &json) {
     ssize_t n = ::send(this->sock_, framed.data(), framed.size(), 0);
     ok = (n == (ssize_t)framed.size());
   }
+  ESP_LOGD(TAG, "After sending JSON");
+
   if (!ok) ESP_LOGW(TAG, "send() short or failed");
   return ok;
 }
