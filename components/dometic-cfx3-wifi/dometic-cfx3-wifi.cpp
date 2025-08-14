@@ -298,7 +298,7 @@ void DometicCFXComponent::poll_recv_() {
     std::string *line = new std::string(this->rxbuf_.substr(start, pos - start));
 
     ESP_LOGD(TAG, "Received line: %s", line->c_str());
-    
+
     if (xQueueSend(this->line_queue_, &line, 0) != pdTRUE) {
       // queue full; drop oldest behavior: discard this line
       ESP_LOGW(TAG, "Line queue full, dropping frame");
@@ -358,7 +358,7 @@ void DometicCFXComponent::close_() {
 bool DometicCFXComponent::send_json_(const std::string &json) {
   if (this->sock_ < 0) return false;
 
-  ESP_LOGD(TAG, "Sending JSON: %s", json);
+  ESP_LOGD(TAG, "Sending JSON: %s", json.c_str());
 
   std::string framed = json + "\r";
   bool ok = false;
