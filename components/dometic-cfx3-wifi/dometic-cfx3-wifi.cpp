@@ -407,7 +407,7 @@ bool DometicCFXComponent::send_subscribe_all_() {
           //std::string(t.name) == "COMPARTMENT_1_DOOR_OPEN" ||
           //std::string(t.name) == "COMPARTMENT_0_SET_TEMPERATURE" ||
           //std::string(t.name) == "COMPARTMENT_1_SET_TEMPERATURE" ||
-          s//td::string(t.name) == "DC_CURRENT_HISTORY_HOUR" ) {
+          //std::string(t.name) == "DC_CURRENT_HISTORY_HOUR" ) {
 
         ESP_LOGI(TAG, "Sending SUBSCRIBE for topic: %s", t.name);
         
