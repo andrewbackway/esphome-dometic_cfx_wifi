@@ -471,14 +471,15 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
 
   int code = arr[0];
   if (code == NOP) {
-    ESP_LOGD(TAG, "NOP");
+    ESP_LOGD(TAG, "Received NOP");
     return true;
   }
   if (code == ACK) {
-    ESP_LOGD(TAG, "ACK");
+    ESP_LOGD(TAG, "Received ACK");
     return true;
   }
   if (code == PUBLISH) {
+    ESP_LOGD(TAG, "Received Publish");
     if (arr.size() < 7) return true;
 
     int a=arr[1], b=arr[2], c=arr[3], d=arr[4];
