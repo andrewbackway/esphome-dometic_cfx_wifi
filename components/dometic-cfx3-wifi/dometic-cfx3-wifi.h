@@ -1,42 +1,40 @@
+
 #pragma once
 
 #include "esphome/core/component.h"
 #include "esphome/components/sensor/sensor.h"
-#include "esphome/components/binary_sensor/binary_sensor.h"
-#include <lwip/sockets.h>
 #include <string>
 
 namespace esphome {
-namespace cfx3 {
+namespace dometic_cfx {
 
-class Cfx3Component : public Component {
+class DometicCFXComponent : public Component {
  public:
-  // User config
-  std::string host_;
-  int port_;
+  void set_host(const std::string &host) { host_ = host; }
+  void set_port(uint16_t port) { port_ = port; }
 
-  // Sensors
-  // TOOD UPDATE WITH ACTUAL LIST
-  
+  #void set_compartment_temp_sensor(sensor::Sensor *sensor) { compartment_temp_ = sensor; }
+  #void set_ambient_temp_sensor(sensor::Sensor *sensor) { ambient_temp_ = sensor; }
+  #void set_voltage_sensor(sensor::Sensor *sensor) { voltage_ = sensor; }
+  #void set_door_status_sensor(sensor::Sensor *sensor) { door_status_ = sensor; }
+
   void setup() override;
   void loop() override;
-  void dump_config() override;
-
-  void set_host(const std::string &host) { host_ = host; }
-  void set_port(int port) { port_ = port; }
 
  protected:
-  int sockfd_ = -1;
-  uint64_t last_connect_attempt_ = 0;
-  uint64_t reconnect_delay_ms_ = 1000; // Start at 1 sec
+  std::string host_;
+  uint16_t port_;
+  int socket_ = -1;
 
-  std::string rx_buffer_;
+  void connect_();
+  void request_data_();
+  void parse_response_(const std::vector<uint8_t> &data);
 
-  bool connect_socket_();
-  void close_socket_();
-  void handle_incoming_data_();
-  void parse_and_publish_(const std::string &json_str);
+  #sensor::Sensor *compartment_temp_ = nullptr;
+  #sensor::Sensor *ambient_temp_ = nullptr;
+  #sensor::Sensor *voltage_ = nullptr;
+  #sensor::Sensor *door_status_ = nullptr;
 };
 
-}  // namespace cfx3
+}  // namespace dometic_cfx
 }  // namespace esphome
