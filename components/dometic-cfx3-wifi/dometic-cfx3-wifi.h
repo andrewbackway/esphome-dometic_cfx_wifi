@@ -37,3 +37,7 @@ class DometicCFXComponent : public Component {
   sensor::Sensor *voltage_ = nullptr;
   sensor::Sensor *door_status_ = nullptr;
 */
+};
+
+}  // namespace dometic_cfx
+}  // namespace esphome
