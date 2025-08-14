@@ -389,10 +389,7 @@ bool DometicCFXComponent::send_json_(const std::string &json) {
     return false;
   }
 
-  ESP_LOGD(TAG, "Sending JSON (2) (size=%u): %s", framed.size(), framed.c_str())
-
-
-  ESP_LOGD(TAG, "Sending JSON (2): %s", framed.c_str());
+  ESP_LOGD(TAG, "Sending JSON (2) (size=%u): %s", framed.size(), framed.c_str());
 
   bool ok = false;
   if (this->send_mutex_ && xSemaphoreTake(this->send_mutex_, pdMS_TO_TICKS(200)) == pdTRUE) {
