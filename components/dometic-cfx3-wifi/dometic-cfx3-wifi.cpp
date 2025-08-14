@@ -1,4 +1,4 @@
-#include "cfx3.h"
+#include "dometic-cfx3-wifi.h"
 #include "esphome.h"
 #include "esphome/core/hal.h"
 #include "esphome/components/json/json_util.h"  // ArduinoJson wrapper
