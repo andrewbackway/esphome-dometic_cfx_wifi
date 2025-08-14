@@ -37,7 +37,7 @@ void DometicCFXComponent::connect_() {
   ESP_LOGI(TAG, "Connecting to %s:%d", this->host_.c_str(), this->port_);
 
   struct sockaddr_in server_addr;
-  this->socket_ = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+  this->socket_ = ::socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
   if (this->socket_ < 0) {
     ESP_LOGE(TAG, "Failed to create socket");
     return;
