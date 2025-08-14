@@ -206,15 +206,19 @@ bool DometicCFXComponent::connect_task_() {
   ESP_LOGI(TAG, "Preparing Socket");
 
   this->sock_ = ::socket(AF_INET, SOCK_STREAM, 0);
-  if (this->sock_ < 0) {
-    ESP_LOGE(TAG, "socket() failed");
+if (this->sock_ < 0) {
+    ESP_LOGE(TAG, "socket() failed: errno=%d", errno);
     return false;
   }
 
   // Short recv timeout for responsive task loop
   struct timeval tv;
   tv.tv_sec = 0; tv.tv_usec = 150000; // 150 ms
-  setsockopt(this->sock_, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+  if (setsockopt(this->sock_, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+    ESP_LOGE(TAG, "setsockopt(SO_RCVTIMEO) failed: errno=%d", errno);
+    this->close_();
+    return false;
+  }
 
   ESP_LOGI(TAG, "Socket created");
 
@@ -229,7 +233,7 @@ bool DometicCFXComponent::connect_task_() {
 
   ESP_LOGI(TAG, "Connecting TCP...");
   if (::connect(this->sock_, (sockaddr *) &addr, sizeof(addr)) < 0) {
-    ESP_LOGE(TAG, "connect() failed");
+    ESP_LOGE(TAG, "connect() failed: errno=%d", errno);
     this->close_();
     return false;
   }
@@ -237,8 +241,17 @@ bool DometicCFXComponent::connect_task_() {
   // Protocol handshake: expect NOP, then PING/ACK, then subscribe-all
   // Receive first line (NOP)
   std::string line;
-  if (!this->recv_line_once_(line)) { this->close_(); return false; }
-  if (!this->handle_payload_inline_(line)) { this->close_(); return false; }
+  if (!this->recv_line_once_(line)) {
+    ESP_LOGE(TAG, "Failed to receive ACK during handshake");
+    this->close_();
+    return false;
+  }
+  ESP_LOGI(TAG, "Received ACK: %s", line.c_str());
+  if (!this->handle_payload_inline_(line)) {
+    ESP_LOGE(TAG, "Failed to handle ACK payload");
+    this->close_();
+    return false;
+  }
 
   ESP_LOGI(TAG, "Handshake NOP received: %s", line.c_str());
 
@@ -250,7 +263,11 @@ bool DometicCFXComponent::connect_task_() {
   ESP_LOGI(TAG, "Send PING, wait for ACK completed");
   
   // Subscribe to all
-  if (!this->send_subscribe_all_()) { this->close_(); return false; }
+  if (!this->send_subscribe_all_()) {
+    ESP_LOGE(TAG, "Failed to send subscriptions");
+    this->close_();
+    return false;
+  }
 
   this->last_activity_ms_ = millis();
   ESP_LOGI(TAG, "Connected and subscribed.");
@@ -357,7 +374,10 @@ void DometicCFXComponent::close_() {
 bool DometicCFXComponent::send_json_(const std::string &json) {
   ESP_LOGD(TAG, "Sending JSON: %s", json.c_str());
 
-  if (this->sock_ < 0) return false;
+  if (this->sock_ < 0) {
+    ESP_LOGE(TAG, "Cannot send JSON: Invalid socket (%d)", this->sock_);
+    return false;
+  }
 
   std::string framed = json + "\r\r";
 
