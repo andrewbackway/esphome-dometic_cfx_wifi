@@ -1,4 +1,5 @@
 #include "cfx3.h"
+#include "esphome.h"
 #include "esphome/core/hal.h"
 #include "esphome/components/json/json_util.h"  // ArduinoJson wrapper
 using esphome::json::build_json;
