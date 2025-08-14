@@ -4,6 +4,18 @@
 #include "esphome/components/json/json_util.h"  // ArduinoJson wrapper
 using esphome::json::build_json;
 
+extern "C" {
+  #include "freertos/FreeRTOS.h"
+  #include "freertos/task.h"
+  #include "freertos/queue.h"
+  #include "freertos/semphr.h"
+}
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
 namespace esphome {
 namespace dometic_cfx {
 
@@ -54,9 +66,9 @@ static const Topic TOPICS[] = {
   {0,1,4,1, "NTC_OPEN_LARGE_ERROR", "INT8_BOOLEAN"},
   {0,2,4,1, "NTC_SHORT_LARGE_ERROR", "INT8_BOOLEAN"},
   {0,9,4,1, "SOLENOID_VALVE_ERROR", "INT8_BOOLEAN"},
-  {0,17,4,1, "NTC_OPEN_SMALL_ERROR", "INT8_BOOLEAN"},      // notes in exporter
-  {0,18,4,1, "NTC_SHORT_SMALL_ERROR", "INT8_BOOLEAN"},     // notes in exporter
-  {0,50,4,1, "FAN_OVERVOLTAGE_ERROR", "INT8_BOOLEAN"},     // notes in exporter
+  {0,17,4,1, "NTC_OPEN_SMALL_ERROR", "INT8_BOOLEAN"},
+  {0,18,4,1, "NTC_SHORT_SMALL_ERROR", "INT8_BOOLEAN"},
+  {0,50,4,1, "FAN_OVERVOLTAGE_ERROR", "INT8_BOOLEAN"},
   {0,51,4,1, "COMPRESSOR_START_FAIL_ERROR", "INT8_BOOLEAN"},
   {0,52,4,1, "COMPRESSOR_SPEED_ERROR", "INT8_BOOLEAN"},
   {0,53,4,1, "CONTROLLER_OVER_TEMPERATURE", "INT8_BOOLEAN"},
@@ -100,53 +112,106 @@ static const Topic TOPICS[] = {
   {0,66,3,1, "DC_CURRENT_HISTORY_WEEK", "HISTORY_DATA_ARRAY"},
 };
 
+// ---------- NEW: FreeRTOS plumbing (declare if not in header) ----------
+#ifndef CFX3_FREERTOS_PLUMBING_DECLARED
+#define CFX3_FREERTOS_PLUMBING_DECLARED 1
+// Add these to your class in the header if not present:
+/// Queue of complete CR-terminated lines (owned strings)
+/// Using pointers to avoid copying large frames through the queue.
+#endif
+
+// Forward decls for helpers
+static bool json_try_get_array(const std::string &line, std::vector<int> &out);
+
+// ===== Component lifecycle =====
 void DometicCFXComponent::setup() {
   ESP_LOGI(TAG, "Starting CFX3 component: %s:%u", host_.c_str(), (unsigned)port_);
+
+  if (!this->line_queue_) {
+    this->line_queue_ = xQueueCreate(/*len*/ 12, sizeof(std::string*));
+  }
+  if (!this->send_mutex_) {
+    this->send_mutex_ = xSemaphoreCreateMutex();
+  }
+  if (this->socket_task_handle_ == nullptr) {
+    // Use a modest stack; increase if you hit stack overflow.
+    xTaskCreatePinnedToCore(
+      [](void *param) {
+        static_cast<DometicCFXComponent*>(param)->socket_task_();
+      },
+      "cfx3_socket",
+      8192,
+      this,
+      4,                          // priority
+      &this->socket_task_handle_,
+      1                           // core 1 helps keep Wi-Fi on core 0
+    );
+  }
 }
 
 void DometicCFXComponent::loop() {
-  const uint32_t now = millis();
-
-  if (sock_ < 0) {
-    if (!this->connect_()) {
-      delay(2000);
-      return;
+  // Non-blocking dequeue of any received line(s)
+  for (int i = 0; i < 3; ++i) {   // process up to 3 frames per loop to keep fair
+    std::string *line_ptr = nullptr;
+    if (xQueueReceive(this->line_queue_, &line_ptr, 0) != pdTRUE) break;
+    if (line_ptr) {
+      this->handle_payload_(*line_ptr);
+      delete line_ptr;
+      this->last_activity_ms_ = millis();
     }
-  }
-
-  // Periodic keepalive ping
-  if (now - last_ping_ms_ > 15000) {
-    this->send_ping_();
-    last_ping_ms_ = now;
-  }
-
-  // Read any incoming line (CR-terminated)
-  std::string line;
-  if (this->recv_line_(line)) {
-    this->handle_payload_(line);
-    last_activity_ms_ = now;
-  }
-
-  // If idle for a long time, reconnect
-  if (now - last_activity_ms_ > 60000) {
-    ESP_LOGW(TAG, "No activity, reconnecting …");
-    this->close_();
   }
 }
 
-bool DometicCFXComponent::connect_() {
+// ===== Socket task (all blocking I/O lives here) =====
+void DometicCFXComponent::socket_task_() {
+  ESP_LOGI(TAG, "Socket task started");
+  this->rxbuf_.clear();
+
+  while (true) {
+    if (this->sock_ < 0) {
+      if (!this->connect_task_()) {
+        // connection attempt failed; wait then retry
+        vTaskDelay(pdMS_TO_TICKS(2000));
+        continue;
+      }
+    }
+
+    // Keepalive ping (every 15s)
+    const uint32_t now = millis();
+    if (now - this->last_ping_ms_ > 15000) {
+      this->send_ping_();               // thread-safe via send_mutex_
+      this->last_ping_ms_ = now;
+    }
+
+    // Read bytes with short timeout and assemble lines
+    this->poll_recv_();                 // pushes complete lines to queue
+
+    // Idle timeout -> force reconnect
+    if (now - this->last_activity_ms_ > 60000) {
+      ESP_LOGW(TAG, "No activity, reconnecting …");
+      this->close_();
+      // loop continues and tries reconnect
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(30));      // yield
+  }
+}
+
+// Called only from socket task context
+bool DometicCFXComponent::connect_task_() {
   ESP_LOGI(TAG, "Connecting to %s:%u", host_.c_str(), (unsigned)port_);
   this->close_();
 
-  sock_ = ::socket(AF_INET, SOCK_STREAM, 0);
-  if (sock_ < 0) {
+  this->sock_ = ::socket(AF_INET, SOCK_STREAM, 0);
+  if (this->sock_ < 0) {
     ESP_LOGE(TAG, "socket() failed");
     return false;
   }
-  // 30s timeout like exporter
+
+  // Short recv timeout for responsive task loop
   struct timeval tv;
-  tv.tv_sec = 30; tv.tv_usec = 0;
-  setsockopt(sock_, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+  tv.tv_sec = 0; tv.tv_usec = 150000; // 150 ms
+  setsockopt(this->sock_, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
   sockaddr_in addr{};
   addr.sin_family = AF_INET;
@@ -156,50 +221,143 @@ bool DometicCFXComponent::connect_() {
     this->close_();
     return false;
   }
+
   ESP_LOGI(TAG, "Connecting TCP …");
-  if (::connect(sock_, (sockaddr *) &addr, sizeof(addr)) < 0) {
+  if (::connect(this->sock_, (sockaddr *) &addr, sizeof(addr)) < 0) {
     ESP_LOGE(TAG, "connect() failed");
     this->close_();
     return false;
   }
 
-  // Expect NOP first
+  // Protocol handshake: expect NOP, then PING/ACK, then subscribe-all
+  // Receive first line (NOP)
   std::string line;
-  if (!this->recv_line_(line)) { this->close_(); return false; }
-  bool ok = this->handle_payload_(line); // should be NOP
-  if (!ok) { this->close_(); return false; }
+  if (!this->recv_line_once_(line)) { this->close_(); return false; }
+  if (!this->handle_payload_inline_(line)) { this->close_(); return false; }
 
-  // Send PING, wait for ACK
+  // Send PING, wait ACK
   if (!this->send_ping_()) { this->close_(); return false; }
-  if (!this->recv_line_(line)) { this->close_(); return false; }
-  ok = this->handle_payload_(line); // should include ACK
-  if (!ok) { this->close_(); return false; }
+  if (!this->recv_line_once_(line)) { this->close_(); return false; }
+  if (!this->handle_payload_inline_(line)) { this->close_(); return false; }
 
-  // Subscribe to all streams (SZ, SZI, DZ) like the exporter
+  // Subscribe to all
   if (!this->send_subscribe_all_()) { this->close_(); return false; }
 
-  last_activity_ms_ = millis();
+  this->last_activity_ms_ = millis();
   ESP_LOGI(TAG, "Connected & subscribed.");
   return true;
 }
 
-void DometicCFXComponent::close_() {
-  ESP_LOGI(TAG, "Closing connection");
-  if (sock_ >= 0) {
-    ::close(sock_);
-    sock_ = -1;
+// Non-blocking poll of socket; assembles CR-terminated frames to queue
+void DometicCFXComponent::poll_recv_() {
+  if (this->sock_ < 0) return;
+
+  char buf[128];
+  // recv() will return -1 with EWOULDBLOCK after ~timeout or 0 on close
+  ssize_t n = ::recv(this->sock_, buf, sizeof(buf), 0);
+  if (n == 0) {
+    ESP_LOGW(TAG, "Peer closed connection");
+    this->close_();
+    return;
+  }
+  if (n < 0) {
+    // timeout or transient; just return
+    return;
+  }
+
+  // Append to buffer and split on '\r'
+  this->rxbuf_.append(buf, buf + n);
+
+  // Extract complete frames
+  size_t start = 0;
+  while (true) {
+    size_t pos = this->rxbuf_.find('\r', start);
+    if (pos == std::string::npos) {
+      // keep partial data
+      // but protect against runaway buffer
+      if (this->rxbuf_.size() > 8192) {
+        ESP_LOGW(TAG, "RX buffer overflow, resetting");
+        this->rxbuf_.clear();
+      }
+      break;
+    }
+    // One full line [start..pos-1]
+    std::string *line = new std::string(this->rxbuf_.substr(start, pos - start));
+    if (xQueueSend(this->line_queue_, &line, 0) != pdTRUE) {
+      // queue full; drop oldest behavior: discard this line
+      ESP_LOGW(TAG, "Line queue full, dropping frame");
+      delete line;
+    } else {
+      // activity noted
+      this->last_activity_ms_ = millis();
+    }
+    start = pos + 1;
+  }
+
+  // Keep any tail after the last '\r'
+  if (start > 0) {
+    this->rxbuf_.erase(0, start);
   }
 }
 
+// One-shot blocking read for handshake (task context only)
+bool DometicCFXComponent::recv_line_once_(std::string &out) {
+  out.clear();
+  if (this->sock_ < 0) return false;
+
+  // Use existing SO_RCVTIMEO (~150ms) and loop with finite attempts
+  char ch;
+  uint32_t deadline = millis() + 5000; // 5s max for a line during handshake
+  while (millis() < deadline) {
+    ssize_t n = ::recv(this->sock_, &ch, 1, 0);
+    if (n == 0) return false;         // closed
+    if (n < 0) {                      // timeout
+      vTaskDelay(pdMS_TO_TICKS(20));
+      continue;
+    }
+    if (ch == '\r') return true;
+    out.push_back(ch);
+    if (out.size() > 4096) { ESP_LOGW(TAG, "Frame too large, dropping"); return false; }
+  }
+  return false;
+}
+
+// Handle payload used during handshake (socket task context)
+bool DometicCFXComponent::handle_payload_inline_(const std::string &line) {
+  // We reuse the same parser; it may publish entities.
+  // During handshake we don't want to ACK back from loop; handle_payload_() will send ACK itself.
+  return this->handle_payload_(line);
+}
+
+// ===== Socket utils =====
+void DometicCFXComponent::close_() {
+  ESP_LOGI(TAG, "Closing connection");
+  if (this->sock_ >= 0) {
+    ::close(this->sock_);
+    this->sock_ = -1;
+  }
+  this->rxbuf_.clear();
+}
+
 bool DometicCFXComponent::send_json_(const std::string &json) {
-  if (sock_ < 0) return false;
+  if (this->sock_ < 0) return false;
   std::string framed = json + "\r";
-  ssize_t n = ::send(sock_, framed.data(), framed.size(), 0);
-  return n == (ssize_t)framed.size();
+  bool ok = false;
+  if (this->send_mutex_ && xSemaphoreTake(this->send_mutex_, pdMS_TO_TICKS(200)) == pdTRUE) {
+    ssize_t n = ::send(this->sock_, framed.data(), framed.size(), 0);
+    ok = (n == (ssize_t)framed.size());
+    xSemaphoreGive(this->send_mutex_);
+  } else {
+    // As a fallback try unsynchronized (should be rare)
+    ssize_t n = ::send(this->sock_, framed.data(), framed.size(), 0);
+    ok = (n == (ssize_t)framed.size());
+  }
+  if (!ok) ESP_LOGW(TAG, "send() short or failed");
+  return ok;
 }
 
 bool DometicCFXComponent::send_ack_() {
-  ESP_LOGI(TAG, "Sending ACK");
+  ESP_LOGD(TAG, "Sending ACK");
   std::string payload = esphome::json::build_json([&](JsonObject root) {
     JsonArray arr = root["ddmp"].to<JsonArray>();
     arr.add((int) ACK);
@@ -208,7 +366,7 @@ bool DometicCFXComponent::send_ack_() {
 }
 
 bool DometicCFXComponent::send_ping_() {
-  ESP_LOGI(TAG, "Sending PING");
+  ESP_LOGD(TAG, "Sending PING");
   std::string payload = esphome::json::build_json([&](JsonObject root) {
     JsonArray arr = root["ddmp"].to<JsonArray>();
     arr.add((int) PING);
@@ -216,8 +374,6 @@ bool DometicCFXComponent::send_ping_() {
   return this->send_json_(payload);
 }
 
-// Assumes you iterate a list of special SUBSCRIBE topics (e.g., SUBSCRIBE_APP_SZ/SZI/DZ)
-// and/or your TOPICS table. Keep your existing outer loop; just replace the JSON build.
 bool DometicCFXComponent::send_subscribe_all_() {
   ESP_LOGI(TAG, "Sending SUBSCRIBE to all");
   for (const Topic &t : TOPICS) {
@@ -233,28 +389,13 @@ bool DometicCFXComponent::send_subscribe_all_() {
         arr.add(t.d);
       });
       if (!this->send_json_(payload)) return false;
-      delay(20);
+      vTaskDelay(pdMS_TO_TICKS(20));
     }
   }
   return true;
 }
 
-
-bool DometicCFXComponent::recv_line_(std::string &out) {
-  out.clear();
-  if (sock_ < 0) return false;
-
-  char ch;
-  while (true) {
-    ssize_t n = ::recv(sock_, &ch, 1, 0);
-    if (n <= 0) return false;
-    if (ch == '\r') break;
-    out.push_back(ch);
-    // protect against very long/invalid frames
-    if (out.size() > 4096) { ESP_LOGW(TAG, "Frame too large, dropping"); return false; }
-  }
-  return true;
-}
+// ===== Parsing & publishing =====
 
 static bool json_try_get_array(const std::string &line, std::vector<int> &out) {
   JsonDocument doc;  // ArduinoJson v7
@@ -270,9 +411,7 @@ static bool json_try_get_array(const std::string &line, std::vector<int> &out) {
   return true;
 }
 
-
 float DometicCFXComponent::int16_deci_to_float_(int b0, int b1) {
-  // Same as exporter: signed 16-bit big-endian fixed with /10
   int16_t raw = (int16_t)((b1 << 8) | (b0 & 0xFF));
   return ((float) raw) / 10.0f;
 }
@@ -288,23 +427,20 @@ std::string DometicCFXComponent::to_json_array_(const std::vector<int> &vals) {
 }
 
 void DometicCFXComponent::publish_bool_(binary_sensor::BinarySensor *b, bool v) {
-  if (v) ESP_LOGD(TAG, "Publishing bool: %s", b->get_name().c_str());
-  else ESP_LOGD(TAG, "Publishing bool: %s = false", b->get_name().c_str());
+  ESP_LOGD(TAG, "Publishing bool: %s = %s", b ? b->get_name().c_str() : "(null)", v ? "true" : "false");
   if (b) b->publish_state(v);
 }
-
 void DometicCFXComponent::publish_float_(sensor::Sensor *s, float v) {
-  ESP_LOGD(TAG, "Publishing float: %s = %f", s->get_name().c_str(), v);
+  ESP_LOGD(TAG, "Publishing float: %s = %f", s ? s->get_name().c_str() : "(null)", v);
   if (s) s->publish_state(v);
 }
-
 void DometicCFXComponent::publish_text_(text_sensor::TextSensor *t, const std::string &v) {
-  ESP_LOGD(TAG, "Publishing text: %s = %s", t->get_name().c_str(), v.c_str());
+  ESP_LOGD(TAG, "Publishing text: %s = %s", t ? t->get_name().c_str() : "(null)", v.c_str());
   if (t) t->publish_state(v);
 }
 
 bool DometicCFXComponent::handle_payload_(const std::string &line) {
-  ESP_LOGI(TAG, "Received payload: %s", line.c_str());
+  ESP_LOGV(TAG, "Received payload: %s", line.c_str());
   std::vector<int> arr;
   if (!json_try_get_array(line, arr) || arr.empty()) {
     ESP_LOGW(TAG, "Invalid frame");
@@ -312,13 +448,8 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
   }
 
   int code = arr[0];
-  // ddmp frame format variants:
-  //  - NOP/ACK/…: [code]
-  //  - SUBSCRIBE ack: [ACK, ...]
-  //  - PUBLISH: [PUBLISH, a,b,c,d, valueType, <value bytes...>]
   if (code == NOP) {
     ESP_LOGD(TAG, "NOP");
-    // reply? The exporter doesn't ACK NOP; keep going
     return true;
   }
   if (code == ACK) {
@@ -328,21 +459,13 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
   if (code == PUBLISH) {
     if (arr.size() < 7) return true;
 
-    // Extract topic tuple and type
     int a=arr[1], b=arr[2], c=arr[3], d=arr[4];
-    // valueType as enum mapped like exporter strings; we parse int index by matching
-    // The exporter uses string names; DDMP here sends a numeric type id.
-    // We'll decode based on lengths/patterns like the Python did.
+    int value_type = arr[5]; (void)value_type;
 
-    int value_type = arr[5];
-
-    // Remaining are "value bytes" (unsigned 8-bit ints)
     std::vector<int> val;
     for (size_t i=6; i<arr.size(); ++i) val.push_back(arr[i] & 0xFF);
 
-    // Helper to match topic
     auto topic_is = [&](int ta,int tb,int tc,int td){ return ta==a && tb==b && tc==c && td==d; };
-
     auto decode_bool = [&]()->bool { return !val.empty() && (val[0] != 0); };
     auto decode_int8  = [&]()->float { return val.empty()?NAN:(float)(int8_t)val[0]; };
     auto decode_uint8 = [&]()->float { return val.empty()?NAN:(float)(uint8_t)val[0]; };
@@ -352,7 +475,6 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
     };
     auto decode_deci  = decode_temp;
 
-    // History array = 7 temps (t1..t7) + timestamp byte (per exporter comments)
     auto decode_history = [&]()->std::pair<float,std::string> {
       if (val.size() < 15) return {NAN, ""};
       float latest = int16_deci_to_float_(val[0], val[1]);
@@ -360,15 +482,11 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
       return {latest, to_json_array_(as_ints)};
     };
 
-    // === Map to published entities (cover everything the exporter emits) ===
-
-    // Temps & setpoints
+    // === Map to published entities (unchanged logic) ===
     if (topic_is(0,1,1,1)) publish_float_(comp0_temp, decode_temp());
     else if (topic_is(16,1,1,1)) publish_float_(comp1_temp, decode_temp());
     else if (topic_is(0,2,1,1)) publish_float_(comp0_set_temp, decode_temp());
     else if (topic_is(16,2,1,1)) publish_float_(comp1_set_temp, decode_temp());
-
-    // Door state + rising-edge open counters (to mirror Prometheus counters)
     else if (topic_is(0,8,1,1)) {
       bool cur = decode_bool();
       publish_bool_(comp0_door_open, cur);
@@ -380,24 +498,16 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
       if (cur && !comp1_door_prev_ && comp1_open_count) comp1_open_count->publish_state((comp1_open_count->state) + 1.0f);
       comp1_door_prev_ = cur;
     }
-
-    // Power & electrical
     else if (topic_is(0,0,3,1)) publish_bool_(cooler_power, decode_bool());
     else if (topic_is(0,1,3,1)) publish_float_(dc_voltage, decode_deci());
     else if (topic_is(0,2,3,1)) publish_float_(battery_protection_level, decode_uint8());
     else if (topic_is(0,5,3,1)) publish_float_(power_source, decode_int8());
     else if (topic_is(0,6,3,1)) publish_bool_(icemaker_power, decode_bool());
-
-    // Compartment power toggles
     else if (topic_is(0,0,1,1)) publish_bool_(comp0_power, decode_bool());
     else if (topic_is(16,0,1,1)) publish_bool_(comp1_power, decode_bool());
-
-    // Counts / properties / units
     else if (topic_is(0,128,0,1)) publish_float_(compartment_count, decode_uint8());
     else if (topic_is(0,129,0,1)) publish_float_(icemaker_count, decode_uint8());
     else if (topic_is(0,0,2,1))   publish_float_(presented_temp_unit, decode_uint8());
-
-    // Errors
     else if (topic_is(0,3,4,1)) publish_bool_(err_comm_alarm, decode_bool());
     else if (topic_is(0,1,4,1)) publish_bool_(err_ntc_open_large, decode_bool());
     else if (topic_is(0,2,4,1)) publish_bool_(err_ntc_short_large, decode_bool());
@@ -408,29 +518,19 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
     else if (topic_is(0,51,4,1)) publish_bool_(err_compressor_start_fail, decode_bool());
     else if (topic_is(0,52,4,1)) publish_bool_(err_compressor_speed, decode_bool());
     else if (topic_is(0,53,4,1)) publish_bool_(err_controller_overtemp, decode_bool());
-
-    // Alerts
     else if (topic_is(0,3,5,1)) publish_bool_(alert_temp_dcm, decode_bool());
     else if (topic_is(0,0,5,1)) publish_bool_(alert_temp_cc, decode_bool());
     else if (topic_is(0,1,5,1)) publish_bool_(alert_door, decode_bool());
     else if (topic_is(0,2,5,1)) publish_bool_(alert_voltage, decode_bool());
-
-    // Communication
     else if (topic_is(0,1,6,1)) publish_bool_(wifi_mode, decode_bool());
     else if (topic_is(0,3,6,1)) publish_bool_(bluetooth_mode, decode_bool());
     else if (topic_is(0,8,6,1)) publish_bool_(wifi_ap_connected, decode_bool());
-
-    // Strings
     else if (topic_is(0,193,0,0)) publish_text_(product_serial, std::string(val.begin(), val.end()));
     else if (topic_is(0,0,6,1))   publish_text_(device_name, std::string(val.begin(), val.end()));
-
-    // Ranges/arrays → JSON text
     else if (topic_is(0,129,1,1)) publish_text_(comp0_recommended_range, to_json_array_(val));
     else if (topic_is(16,129,1,1)) publish_text_(comp1_recommended_range, to_json_array_(val));
     else if (topic_is(0,128,1,1)) publish_text_(comp0_temp_range, to_json_array_(val));
     else if (topic_is(16,128,1,1)) publish_text_(comp1_temp_range, to_json_array_(val));
-
-    // WiFi settings strings (note: bytes are UTF-8 chars)
     else if (topic_is(0,0,7,1)) publish_text_(station_ssid_0, std::string(val.begin(), val.end()));
     else if (topic_is(1,0,7,1)) publish_text_(station_ssid_1, std::string(val.begin(), val.end()));
     else if (topic_is(2,0,7,1)) publish_text_(station_ssid_2, std::string(val.begin(), val.end()));
@@ -444,8 +544,6 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
     else if (topic_is(2,2,7,1)) publish_text_(cfx_direct_password_2, std::string(val.begin(), val.end()));
     else if (topic_is(3,2,7,1)) publish_text_(cfx_direct_password_3, std::string(val.begin(), val.end()));
     else if (topic_is(4,2,7,1)) publish_text_(cfx_direct_password_4, std::string(val.begin(), val.end()));
-
-    // History arrays: publish JSON + latest sample as a numeric sensor
     else if (topic_is(0,64,1,1)) { auto p=decode_history(); publish_float_(comp0_hist_hour_latest,p.first); publish_text_(comp0_hist_hour_json,p.second); }
     else if (topic_is(16,64,1,1)) { auto p=decode_history(); publish_float_(comp1_hist_hour_latest,p.first); publish_text_(comp1_hist_hour_json,p.second); }
     else if (topic_is(0,65,1,1)) { auto p=decode_history(); publish_text_(comp0_hist_day_json,p.second); }
@@ -456,16 +554,13 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
     else if (topic_is(0,65,3,1)) { auto p=decode_history(); publish_text_(dc_current_hist_day_json,p.second); }
     else if (topic_is(0,66,3,1)) { auto p=decode_history(); publish_text_(dc_current_hist_week_json,p.second); }
 
-    // SUBSCRIBE_* and others don’t carry values we publish; ignore.
-
-    // For safety: ACK all publishes to match app behavior
+    // ACK all publishes to match app behavior
     this->send_ack_();
     return true;
   }
 
-  // default
   return true;
 }
 
-}  // namespace cfx3
+}  // namespace dometic_cfx
 }  // namespace esphome

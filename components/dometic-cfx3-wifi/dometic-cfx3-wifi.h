@@ -126,6 +126,23 @@ class DometicCFXComponent : public Component {
   int sock_{-1};
   uint32_t last_activity_ms_{0};
   uint32_t last_ping_ms_{0};
+
+
+  // FreeRTOS resources
+  TaskHandle_t socket_task_handle_ = nullptr;
+  QueueHandle_t line_queue_ = nullptr;
+  SemaphoreHandle_t send_mutex_ = nullptr;
+
+  // RX line assembler buffer (task context)
+  std::string rxbuf_;
+
+  // Task + helpers
+  void socket_task_();
+  bool connect_task_();
+  void poll_recv_();
+  bool recv_line_once_(std::string &out);
+  bool handle_payload_inline_(const std::string &line);
+
   bool comp0_door_prev_{false};
   bool comp1_door_prev_{false};
 
@@ -136,7 +153,7 @@ class DometicCFXComponent : public Component {
   bool send_ping_();
   bool send_subscribe_all_();
 
-  bool recv_line_(std::string &out); // reads up to '\r'
+  // ? bool recv_line_(std::string &out); // reads up to '\r'
   bool handle_payload_(const std::string &line);
 
   // decoding helpers
@@ -147,6 +164,9 @@ class DometicCFXComponent : public Component {
   void publish_bool_(binary_sensor::BinarySensor *b, bool v);
   void publish_float_(sensor::Sensor *s, float v);
   void publish_text_(text_sensor::TextSensor *t, const std::string &v);
+
+  bool comp0_door_prev_ = false;
+  bool comp1_door_prev_ = false;
 };
 
 }  // namespace cfx3
