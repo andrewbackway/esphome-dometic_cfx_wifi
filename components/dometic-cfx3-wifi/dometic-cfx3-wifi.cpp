@@ -262,11 +262,10 @@ bool DometicCFXComponent::connect_task_() {
 void DometicCFXComponent::poll_recv_() {
   if (this->sock_ < 0) return;
 
-  ESP_LOGD(TAG, "Receiving data (1)...");
-
   char buf[128];
   // recv() will return -1 with EWOULDBLOCK after ~timeout or 0 on close
   ssize_t n = ::recv(this->sock_, buf, sizeof(buf), 0);
+  ESP_LOGD(TAG, "Received %d bytes", n);
   if (n == 0) {
     ESP_LOGW(TAG, "Peer closed connection");
     this->close_();
