@@ -6,8 +6,8 @@ from esphome.components import sensor, binary_sensor, text_sensor
 DEPENDENCIES = []
 AUTO_LOAD = ["sensor", "binary_sensor", "text_sensor"]
 
-dometic_cfx_wifi_ns = cg.esphome_ns.namespace("dometic-cfx3-wifi")
-DometicCfxWifi = dometic_cfx_wifi_ns.class_("DometDometicCFXComponenticCfxWifi", cg.Component)
+dometic_cfx_wifi_ns = cg.esphome_ns.namespace("dometic_cfx")
+DometicCfxWifi = dometic_cfx_wifi_ns.class_("DometicCFXComponent", cg.Component)
 
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(DometicCfxWifi),
