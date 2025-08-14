@@ -253,7 +253,7 @@ bool DometicCFXComponent::connect_task_() {
   if (!this->send_subscribe_all_()) { this->close_(); return false; }
 
   this->last_activity_ms_ = millis();
-  ESP_LOGI(TAG, "Connected & subscribed.");
+  ESP_LOGI(TAG, "Connected and subscribed.");
 
   return true;
 }
@@ -261,6 +261,7 @@ bool DometicCFXComponent::connect_task_() {
 // Non-blocking poll of socket; assembles CR-terminated frames to queue
 void DometicCFXComponent::poll_recv_() {
   if (this->sock_ < 0) return;
+
 
   char buf[128];
   // recv() will return -1 with EWOULDBLOCK after ~timeout or 0 on close
@@ -274,6 +275,8 @@ void DometicCFXComponent::poll_recv_() {
     // timeout or transient; just return
     return;
   }
+
+  ESP_LOGD(TAG, "Receiving data...");
 
   // Append to buffer and split on '\r'
   this->rxbuf_.append(buf, buf + n);
@@ -293,6 +296,9 @@ void DometicCFXComponent::poll_recv_() {
     }
     // One full line [start..pos-1]
     std::string *line = new std::string(this->rxbuf_.substr(start, pos - start));
+
+    ESP_LOGD(TAG, "Received line: %s", line->c_str());
+    
     if (xQueueSend(this->line_queue_, &line, 0) != pdTRUE) {
       // queue full; drop oldest behavior: discard this line
       ESP_LOGW(TAG, "Line queue full, dropping frame");
