@@ -170,6 +170,7 @@ void DometicCFXComponent::socket_task_() {
   while (true) {
     if (this->sock_ < 0) {
       if (!this->connect_task_()) {
+        ESP_LOGE(TAG, "Connection attempt failed, will retry in 2 seconds");
         // connection attempt failed; wait then retry
         vTaskDelay(pdMS_TO_TICKS(2000));
         continue;
@@ -178,13 +179,13 @@ void DometicCFXComponent::socket_task_() {
 
     // Keepalive ping (every 15s)
     if (millis() - this->last_ping_ms_ > 15000 || this->last_ping_ms_ == 0) {
-      ESP_LOGI(TAG, "Sending keepalive ping");
-      this->send_ping_();               // thread-safe via send_mutex_
+      ESP_LOGI(TAG, "Sending keepalive ping...");
+      this->send_ping_(); // thread-safe via send_mutex_
       this->last_ping_ms_ = millis();
     }
 
     // Read bytes with short timeout and assemble lines
-    this->poll_recv_();                 // pushes complete lines to queue
+    this->poll_recv_();  // pushes complete lines to queue
 
     // Idle timeout -> force reconnect (60 secs)
     if (millis() - this->last_activity_ms_ > 60000) {
