@@ -197,34 +197,35 @@ bool DometicCFXComponent::send_json_(const std::string &json) {
 }
 
 bool DometicCFXComponent::send_ack_() {
-  std::string payload;
-  build_json(payload, [=](JsonObject root) {
-    JsonArray arr = root.createNestedArray("ddmp");
-    arr.add((int)ACK);
+  std::string payload = esphome::json::build_json([&](JsonObject root) {
+    JsonArray arr = root["ddmp"].to<JsonArray>();
+    arr.add((int) ACK);
   });
   return this->send_json_(payload);
 }
 
 bool DometicCFXComponent::send_ping_() {
-  std::string payload;
-  build_json(payload, [=](JsonObject root) {
-    JsonArray arr = root.createNestedArray("ddmp");
-    arr.add((int)PING);
+  std::string payload = esphome::json::build_json([&](JsonObject root) {
+    JsonArray arr = root["ddmp"].to<JsonArray>();
+    arr.add((int) PING);
   });
   return this->send_json_(payload);
 }
 
+// Assumes you iterate a list of special SUBSCRIBE topics (e.g., SUBSCRIBE_APP_SZ/SZI/DZ)
+// and/or your TOPICS table. Keep your existing outer loop; just replace the JSON build.
 bool DometicCFXComponent::send_subscribe_all_() {
-  // Emit three SUBSCRIBE payloads using the special SUBSCRIBE_APP_* topics
   for (const Topic &t : TOPICS) {
     if (std::string(t.name) == "SUBSCRIBE_APP_SZ" ||
         std::string(t.name) == "SUBSCRIBE_APP_SZI" ||
         std::string(t.name) == "SUBSCRIBE_APP_DZ") {
-      std::string payload;
-      build_json(payload, [&](JsonObject root){
-        JsonArray arr = root.createNestedArray("ddmp");
-        arr.add((int)SUBSCRIBE);
-        arr.add(t.a); arr.add(t.b); arr.add(t.c); arr.add(t.d);
+      std::string payload = esphome::json::build_json([&](JsonObject root) {
+        JsonArray arr = root["ddmp"].to<JsonArray>();
+        arr.add((int) SUBSCRIBE);
+        arr.add(t.a);
+        arr.add(t.b);
+        arr.add(t.c);
+        arr.add(t.d);
       });
       if (!this->send_json_(payload)) return false;
       delay(20);
@@ -232,6 +233,7 @@ bool DometicCFXComponent::send_subscribe_all_() {
   }
   return true;
 }
+
 
 bool DometicCFXComponent::recv_line_(std::string &out) {
   out.clear();
@@ -250,15 +252,19 @@ bool DometicCFXComponent::recv_line_(std::string &out) {
 }
 
 static bool json_try_get_array(const std::string &line, std::vector<int> &out) {
-  DynamicJsonDocument doc(4096);
+  JsonDocument doc;  // ArduinoJson v7
   auto err = deserializeJson(doc, line);
   if (err) return false;
-  JsonVariant v = doc["ddmp"];
-  if (!v.is<JsonArray>()) return false;
+
+  JsonArray arr = doc["ddmp"].as<JsonArray>();
+  if (arr.isNull()) return false;
+
   out.clear();
-  for (JsonVariant x : v.as<JsonArray>()) out.push_back((int)x.as<long>());
+  out.reserve(arr.size());
+  for (JsonVariant v : arr) out.push_back((int) v.as<long>());
   return true;
 }
+
 
 float DometicCFXComponent::int16_deci_to_float_(int b0, int b1) {
   // Same as exporter: signed 16-bit big-endian fixed with /10
