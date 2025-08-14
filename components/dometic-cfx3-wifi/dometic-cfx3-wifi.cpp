@@ -300,6 +300,7 @@ void DometicCFXComponent::publish_text_(text_sensor::TextSensor *t, const std::s
 }
 
 bool DometicCFXComponent::handle_payload_(const std::string &line) {
+  ESP_LOGI(TAG, "Received payload: %s", line.c_str());
   std::vector<int> arr;
   if (!json_try_get_array(line, arr) || arr.empty()) {
     ESP_LOGW(TAG, "Invalid frame");
