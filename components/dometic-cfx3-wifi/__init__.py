@@ -1,10 +1,9 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import CONF_ID
-from esphome.components import sensor, binary_sensor, text_sensor
 
 DEPENDENCIES = []
-AUTO_LOAD = ["sensor", "binary_sensor", "text_sensor"]
+AUTO_LOAD = ["network", "json", "sensor", "binary_sensor", "text_sensor"]
 
 dometic_cfx_wifi_ns = cg.esphome_ns.namespace("dometic_cfx")
 DometicCfxWifi = dometic_cfx_wifi_ns.class_("DometicCFXComponent", cg.Component)
@@ -12,7 +11,7 @@ DometicCfxWifi = dometic_cfx_wifi_ns.class_("DometicCFXComponent", cg.Component)
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(DometicCfxWifi),
     cv.Required("host"): cv.string,
-    cv.Optional("port"): cv.port
+    cv.Optional("port", default=13142): cv.port,
 }).extend(cv.COMPONENT_SCHEMA)
 
 
