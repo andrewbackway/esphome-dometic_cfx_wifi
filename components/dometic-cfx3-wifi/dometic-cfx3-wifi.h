@@ -164,9 +164,6 @@ class DometicCFXComponent : public Component {
   void publish_bool_(binary_sensor::BinarySensor *b, bool v);
   void publish_float_(sensor::Sensor *s, float v);
   void publish_text_(text_sensor::TextSensor *t, const std::string &v);
-
-  bool comp0_door_prev_ = false;
-  bool comp1_door_prev_ = false;
 };
 
 }  // namespace cfx3
