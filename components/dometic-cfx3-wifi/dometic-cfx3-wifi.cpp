@@ -177,19 +177,16 @@ void DometicCFXComponent::socket_task_() {
     }
 
     // Keepalive ping (every 15s)
-    const uint32_t now = millis();
-    if (now - this->last_ping_ms_ > 15000) {
+    if (millis() - this->last_ping_ms_ > 15000) {
       this->send_ping_();               // thread-safe via send_mutex_
-      this->last_ping_ms_ = now;
+      this->last_ping_ms_ = millis();
     }
 
     // Read bytes with short timeout and assemble lines
     this->poll_recv_();                 // pushes complete lines to queue
 
     // Idle timeout -> force reconnect (60 secs)
-    // if (now - this->last_activity_ms_ > 60000) {
     if (millis() - this->last_activity_ms_ > 60000) {
-      //ESP_LOGI(TAG, "CHECK %u - %u", now, this->last_activity_ms_);
       ESP_LOGW(TAG, "No activity, reconnecting...");
       this->close_();
       // loop continues and tries reconnect
@@ -204,6 +201,8 @@ bool DometicCFXComponent::connect_task_() {
   ESP_LOGI(TAG, "Connecting to %s:%u", host_.c_str(), (unsigned)port_);
   this->close_();
 
+  ESP_LOGI(TAG, "Socket created");
+
   this->sock_ = ::socket(AF_INET, SOCK_STREAM, 0);
   if (this->sock_ < 0) {
     ESP_LOGE(TAG, "socket() failed");
@@ -215,6 +214,8 @@ bool DometicCFXComponent::connect_task_() {
   tv.tv_sec = 0; tv.tv_usec = 150000; // 150 ms
   setsockopt(this->sock_, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
+  ESP_LOGI(TAG, "Socket created");
+
   sockaddr_in addr{};
   addr.sin_family = AF_INET;
   addr.sin_port = htons(port_);
@@ -224,7 +225,7 @@ bool DometicCFXComponent::connect_task_() {
     return false;
   }
 
-  ESP_LOGI(TAG, "Connecting TCP …");
+  ESP_LOGI(TAG, "Connecting TCP...");
   if (::connect(this->sock_, (sockaddr *) &addr, sizeof(addr)) < 0) {
     ESP_LOGE(TAG, "connect() failed");
     this->close_();
@@ -334,8 +335,8 @@ bool DometicCFXComponent::handle_payload_inline_(const std::string &line) {
 
 // ===== Socket utils =====
 void DometicCFXComponent::close_() {
-  ESP_LOGI(TAG, "Closing connection");
   if (this->sock_ >= 0) {
+    ESP_LOGI(TAG, "Closing connection");
     ::close(this->sock_);
     this->sock_ = -1;
   }
