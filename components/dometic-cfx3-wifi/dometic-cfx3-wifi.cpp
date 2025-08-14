@@ -177,7 +177,8 @@ void DometicCFXComponent::socket_task_() {
     }
 
     // Keepalive ping (every 15s)
-    if (millis() - this->last_ping_ms_ > 15000) {
+    if (millis() - this->last_ping_ms_ > 15000 || this->last_ping_ms_ == 0) {
+      ESP_LOGI(TAG, "Sending keepalive ping");
       this->send_ping_();               // thread-safe via send_mutex_
       this->last_ping_ms_ = millis();
     }
