@@ -135,6 +135,7 @@ void DometicCFXComponent::loop() {
 }
 
 bool DometicCFXComponent::connect_() {
+  ESP_LOGI(TAG, "Connecting to %s:%u", host_.c_str(), (unsigned)port_);
   this->close_();
 
   sock_ = ::socket(AF_INET, SOCK_STREAM, 0);
@@ -183,6 +184,7 @@ bool DometicCFXComponent::connect_() {
 }
 
 void DometicCFXComponent::close_() {
+  ESP_LOGI(TAG, "Closing connection");
   if (sock_ >= 0) {
     ::close(sock_);
     sock_ = -1;
@@ -197,6 +199,7 @@ bool DometicCFXComponent::send_json_(const std::string &json) {
 }
 
 bool DometicCFXComponent::send_ack_() {
+  ESP_LOGI(TAG, "Sending ACK");
   std::string payload = esphome::json::build_json([&](JsonObject root) {
     JsonArray arr = root["ddmp"].to<JsonArray>();
     arr.add((int) ACK);
@@ -205,6 +208,7 @@ bool DometicCFXComponent::send_ack_() {
 }
 
 bool DometicCFXComponent::send_ping_() {
+  ESP_LOGI(TAG, "Sending PING");
   std::string payload = esphome::json::build_json([&](JsonObject root) {
     JsonArray arr = root["ddmp"].to<JsonArray>();
     arr.add((int) PING);
@@ -215,6 +219,7 @@ bool DometicCFXComponent::send_ping_() {
 // Assumes you iterate a list of special SUBSCRIBE topics (e.g., SUBSCRIBE_APP_SZ/SZI/DZ)
 // and/or your TOPICS table. Keep your existing outer loop; just replace the JSON build.
 bool DometicCFXComponent::send_subscribe_all_() {
+  ESP_LOGI(TAG, "Sending SUBSCRIBE to all");
   for (const Topic &t : TOPICS) {
     if (std::string(t.name) == "SUBSCRIBE_APP_SZ" ||
         std::string(t.name) == "SUBSCRIBE_APP_SZI" ||
