@@ -390,16 +390,16 @@ bool DometicCFXComponent::send_subscribe_all_() {
         std::string(t.name) == "SUBSCRIBE_APP_SZI" ||
         std::string(t.name) == "SUBSCRIBE_APP_DZ") {
     */
-    if ( std::string(t.name) == SUBSCRIBE_APP_DZ
-          std::string(t.name) == BATTERY_VOLTAGE_LEVEL
-          std::string(t.name) == PRODUCT_SERIAL_NUMBER
-          std::string(t.name) == COMPARTMENT_0_MEASURED_TEMPERATURE
-          std::string(t.name) == COMPARTMENT_1_MEASURED_TEMPERATURE
-          std::string(t.name) == COMPARTMENT_0_DOOR_OPEN
-          std::string(t.name) == COMPARTMENT_1_DOOR_OPEN
-          std::string(t.name) == COMPARTMENT_0_SET_TEMPERATURE
-          std::string(t.name) == COMPARTMENT_1_SET_TEMPERATURE
-          std::string(t.name) == DC_CURRENT_HISTORY_HOUR ) {
+    if ( std::string(t.name) == "SUBSCRIBE_APP_DZ" ||
+          std::string(t.name) == "BATTERY_VOLTAGE_LEVEL" ||
+          std::string(t.name) == "PRODUCT_SERIAL_NUMBER" ||
+          std::string(t.name) == "COMPARTMENT_0_MEASURED_TEMPERATURE" ||
+          std::string(t.name) == "COMPARTMENT_1_MEASURED_TEMPERATURE" ||
+          std::string(t.name) == "COMPARTMENT_0_DOOR_OPEN" ||
+          std::string(t.name) == "COMPARTMENT_1_DOOR_OPEN" ||
+          std::string(t.name) == "COMPARTMENT_0_SET_TEMPERATURE" ||
+          std::string(t.name) == "COMPARTMENT_1_SET_TEMPERATURE" ||
+          std::string(t.name) == "DC_CURRENT_HISTORY_HOUR" ) {
       std::string payload = esphome::json::build_json([&](JsonObject root) {
         JsonArray arr = root["ddmp"].to<JsonArray>();
         arr.add((int) SUBSCRIBE);
