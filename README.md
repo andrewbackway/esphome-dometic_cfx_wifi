@@ -2,7 +2,16 @@
 
 - **Customizable Configuration**: Uses ESPHome's YAML configuration for easy customization.
   - ESP32 or ESP8266 microcontroller (e.g., NodeMCU, Wemos D1 Mini).
+<<<<<<< HEAD
 ```yaml
+=======
+  - Dometic CFX3 fridge/freezer with fridge configured in WiFi mode and connected to same wireless network as ESPHome device (configured via Mobile Cooling App)
+- **Software**:
+  - [ESPHome](https://esphome.io/) installed and configured.
+  - [Home Assistant](https://www.home-assistant.io/) (optional, for integration).
+  - A working WiFi network.
+
+>>>>>>> 32532f5 (a)
 
 ## Configuration Example
 
