@@ -185,74 +185,95 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional("cfx_direct_password_4"): TEXT_SENSOR_SCHEMA,
 }).extend(cv.COMPONENT_SCHEMA)
 
-
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
-    # If your C++ class exposes these, set them
-    if "host" in config:
-        cg.add(var.set_host(config["host"]))
-    if "port" in config:
-        cg.add(var.set_port(config["port"]))
-
-    # Numeric sensors — exactly those defined in the schema above
-    for sensor_key in [
-        "comp0_temp", "comp1_temp", "dc_voltage", "battery_protection_level",
-        "power_source", "compartment_count", "icemaker_count", "comp0_open_count",
-        "comp1_open_count", "presented_temp_unit", "comp0_hist_hour_latest",
-        "comp1_hist_hour_latest", "comp0_hist_day_latest", "comp1_hist_day_latest",
-        "comp0_hist_week_latest", "comp1_hist_week_latest", "dc_current_hist_hour_latest"
-    ]:
+    # Helper to register float sensors
+    async def setup_float_sensor(sensor_key):
         if sensor_key in config:
-            sensor_conf = config[sensor_key]
-            sensor_obj = cg.new_Pvariable(sensor_conf[CONF_ID])
-            if CONF_ICON in sensor_conf:
-                cg.add(sensor_obj.set_icon(sensor_conf[CONF_ICON]))
-            if "unit_of_measurement" in sensor_conf:
-                cg.add(sensor_obj.set_unit_of_measurement(sensor_conf["unit_of_measurement"]))
-            if "device_class" in sensor_conf:
-                cg.add(sensor_obj.set_device_class(sensor_conf["device_class"]))
-            if "accuracy_decimals" in sensor_conf:
-                cg.add(sensor_obj.set_accuracy_decimals(sensor_conf["accuracy_decimals"]))
-            await sensor.register_sensor(sensor_obj, sensor_conf)
-            cg.add(getattr(var, f"set_{sensor_key}")(sensor_obj))
+            conf = config[sensor_key]
+            obj = cg.new_Pvariable(conf[CONF_ID])
+            if CONF_ICON in conf:
+                cg.add(obj.set_icon(conf[CONF_ICON]))
+            if "unit_of_measurement" in conf:
+                cg.add(obj.set_unit_of_measurement(conf["unit_of_measurement"]))
+            if "device_class" in conf:
+                cg.add(obj.set_device_class(conf["device_class"]))
+            if "accuracy_decimals" in conf:
+                cg.add(obj.set_accuracy_decimals(conf["accuracy_decimals"]))
+            cg.add(obj.set_disabled_by_default(conf.get("disabled_by_default", False)))
+            cg.add(obj.set_force_update(conf.get("force_update", False)))
+            await sensor.register_sensor(obj, conf)
+            cg.add(getattr(var, f"set_{sensor_key}")(obj))
 
-    # Binary sensors — match schema
-    for bs_key in [
-        "comp0_door_open", "comp1_door_open", "cooler_power",
-        "comp0_power", "comp1_power", "wifi_mode", "bluetooth_mode",
-        "wifi_ap_connected", "err_comm_alarm", "err_ntc_open_large",
-        "err_ntc_short_large", "err_solenoid_valve", "err_ntc_open_small",
-        "err_ntc_short_small", "err_fan_overvoltage", "err_compressor_start_fail",
-        "err_compressor_speed", "err_controller_overtemp", "alert_temp_dcm",
-        "alert_temp_cc", "alert_door", "alert_voltage"
-    ]:
-        if bs_key in config:
-            bs_conf = config[bs_key]
-            bs_obj = cg.new_Pvariable(bs_conf[CONF_ID])
-            if CONF_ICON in bs_conf:
-                cg.add(bs_obj.set_icon(bs_conf[CONF_ICON]))
-            if "device_class" in bs_conf:
-                cg.add(bs_obj.set_device_class(bs_conf["device_class"]))
-            await binary_sensor.register_binary_sensor(bs_obj, bs_conf)
-            cg.add(getattr(var, f"set_{bs_key}")(bs_obj))
+    # Helper to register binary sensors
+    async def setup_binary_sensor(sensor_key):
+        if sensor_key in config:
+            conf = config[sensor_key]
+            obj = cg.new_Pvariable(conf[CONF_ID])
+            if CONF_ICON in conf:
+                cg.add(obj.set_icon(conf[CONF_ICON]))
+            if "device_class" in conf:
+                cg.add(obj.set_device_class(conf["device_class"]))
+            cg.add(obj.set_disabled_by_default(conf.get("disabled_by_default", False)))
+            cg.add(obj.set_force_update(conf.get("force_update", False)))
+            await binary_sensor.register_binary_sensor(obj, conf)
+            cg.add(getattr(var, f"set_{sensor_key}")(obj))
 
-    # Text sensors — match schema
-    for ts_key in [
-        "device_name", "product_serial", "comp0_recommended_range", "comp1_recommended_range",
-        "comp0_temp_range", "comp1_temp_range", "comp0_hist_hour_json", "comp1_hist_hour_json",
-        "comp0_hist_day_json", "comp1_hist_day_json", "comp0_hist_week_json", "comp1_hist_week_json",
+    # Helper to register text sensors
+    async def setup_text_sensor(sensor_key):
+        if sensor_key in config:
+            conf = config[sensor_key]
+            obj = cg.new_Pvariable(conf[CONF_ID])
+            if CONF_ICON in conf:
+                cg.add(obj.set_icon(conf[CONF_ICON]))
+            cg.add(obj.set_disabled_by_default(conf.get("disabled_by_default", False)))
+            cg.add(obj.set_force_update(conf.get("force_update", False)))
+            await text_sensor.register_text_sensor(obj, conf)
+            cg.add(getattr(var, f"set_{sensor_key}")(obj))
+
+    # === Float sensors ===
+    float_sensors = [
+        "comp0_temp", "comp1_temp", "comp0_set_temp", "comp1_set_temp",
+        "dc_voltage", "battery_protection_level", "power_source",
+        "compartment_count", "icemaker_count",
+        "comp0_hist_hour_latest", "comp1_hist_hour_latest",
+        "comp0_hist_day_latest", "comp1_hist_day_latest",
+        "comp0_hist_week_latest", "comp1_hist_week_latest",
+        "dc_current_hist_hour_latest",
+        "comp0_open_count", "comp1_open_count",
+        "presented_temp_unit"
+    ]
+    for key in float_sensors:
+        await setup_float_sensor(key)
+
+    # === Binary sensors ===
+    binary_sensors = [
+        "cooler_power", "comp0_power", "comp1_power", "comp0_door_open", "comp1_door_open",
+        "icemaker_power", "wifi_mode", "bluetooth_mode", "wifi_ap_connected",
+        "err_comm_alarm", "err_ntc_open_large", "err_ntc_short_large", "err_solenoid_valve",
+        "err_ntc_open_small", "err_ntc_short_small", "err_fan_overvoltage",
+        "err_compressor_start_fail", "err_compressor_speed", "err_controller_overtemp",
+        "alert_temp_dcm", "alert_temp_cc", "alert_door", "alert_voltage"
+    ]
+    for key in binary_sensors:
+        await setup_binary_sensor(key)
+
+    # === Text sensors ===
+    text_sensors = [
+        "product_serial", "device_name",
+        "comp0_recommended_range", "comp1_recommended_range",
+        "comp0_temp_range", "comp1_temp_range",
+        "comp0_hist_hour_json", "comp1_hist_hour_json",
+        "comp0_hist_day_json", "comp1_hist_day_json",
+        "comp0_hist_week_json", "comp1_hist_week_json",
         "dc_current_hist_hour_json", "dc_current_hist_day_json", "dc_current_hist_week_json",
-        "station_ssid_0", "station_ssid_1", "station_ssid_2", "station_password_0",
-        "station_password_1", "station_password_2", "station_password_3", "station_password_4",
+        "station_ssid_0", "station_ssid_1", "station_ssid_2",
+        "station_password_0", "station_password_1", "station_password_2",
+        "station_password_3", "station_password_4",
         "cfx_direct_password_0", "cfx_direct_password_1", "cfx_direct_password_2",
         "cfx_direct_password_3", "cfx_direct_password_4"
-    ]:
-        if ts_key in config:
-            ts_conf = config[ts_key]
-            ts_obj = cg.new_Pvariable(ts_conf[CONF_ID])
-            if CONF_ICON in ts_conf:
-                cg.add(ts_obj.set_icon(ts_conf[CONF_ICON]))
-            await text_sensor.register_text_sensor(ts_obj, ts_conf)
-            cg.add(getattr(var, f"set_{ts_key}")(ts_obj))
+    ]
+    for key in text_sensors:
+        await setup_text_sensor(key)
