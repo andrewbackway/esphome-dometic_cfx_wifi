@@ -22,6 +22,93 @@ class DometicCFXComponent : public Component {
   void set_host(const std::string &host) { host_ = host; }
   void set_port(uint16_t port) { port_ = port; }
 
+  // Float sensor setters
+  void set_comp0_temp(sensor::Sensor *sensor);
+  void set_comp1_temp(sensor::Sensor *sensor);
+  void set_comp0_set_temp(sensor::Sensor *sensor);
+  void set_comp1_set_temp(sensor::Sensor *sensor);
+  void set_dc_voltage(sensor::Sensor *sensor);
+  void set_battery_protection_level(sensor::Sensor *sensor);
+  void set_power_source(sensor::Sensor *sensor);
+  void set_compartment_count(sensor::Sensor *sensor);
+  void set_icemaker_count(sensor::Sensor *sensor);
+  void set_comp0_hist_hour_latest(sensor::Sensor *sensor);
+  void set_comp1_hist_hour_latest(sensor::Sensor *sensor);
+  void set_comp0_hist_day_latest(sensor::Sensor *sensor);
+  void set_comp1_hist_day_latest(sensor::Sensor *sensor);
+  void set_comp0_hist_week_latest(sensor::Sensor *sensor);
+  void set_comp1_hist_week_latest(sensor::Sensor *sensor);
+  void set_dc_current_hist_hour_latest(sensor::Sensor *sensor);
+  void set_comp0_open_count(sensor::Sensor *sensor);
+  void set_comp1_open_count(sensor::Sensor *sensor);
+  void set_presented_temp_unit(sensor::Sensor *sensor);
+
+  // Binary sensor setters
+  void set_cooler_power(binary_sensor::BinarySensor *sensor);
+  void set_comp0_power(binary_sensor::BinarySensor *sensor);
+  void set_comp1_power(binary_sensor::BinarySensor *sensor);
+  void set_comp0_door_open(binary_sensor::BinarySensor *sensor);
+  void set_comp1_door_open(binary_sensor::BinarySensor *sensor);
+  void set_icemaker_power(binary_sensor::BinarySensor *sensor);
+  void set_wifi_mode(binary_sensor::BinarySensor *sensor);
+  void set_bluetooth_mode(binary_sensor::BinarySensor *sensor);
+  void set_wifi_ap_connected(binary_sensor::BinarySensor *sensor);
+  void set_err_comm_alarm(binary_sensor::BinarySensor *sensor);
+  void set_err_ntc_open_large(binary_sensor::BinarySensor *sensor);
+  void set_err_ntc_short_large(binary_sensor::BinarySensor *sensor);
+  void set_err_solenoid_valve(binary_sensor::BinarySensor *sensor);
+  void set_err_ntc_open_small(binary_sensor::BinarySensor *sensor);
+  void set_err_ntc_short_small(binary_sensor::BinarySensor *sensor);
+  void set_err_fan_overvoltage(binary_sensor::BinarySensor *sensor);
+  void set_err_compressor_start_fail(binary_sensor::BinarySensor *sensor);
+  void set_err_compressor_speed(binary_sensor::BinarySensor *sensor);
+  void set_err_controller_overtemp(binary_sensor::BinarySensor *sensor);
+  void set_alert_temp_dcm(binary_sensor::BinarySensor *sensor);
+  void set_alert_temp_cc(binary_sensor::BinarySensor *sensor);
+  void set_alert_door(binary_sensor::BinarySensor *sensor);
+  void set_alert_voltage(binary_sensor::BinarySensor *sensor);
+
+  // Text sensor setters
+  void set_product_serial(text_sensor::TextSensor *sensor);
+  void set_device_name(text_sensor::TextSensor *sensor);
+  void set_comp0_recommended_range(text_sensor::TextSensor *sensor);
+  void set_comp1_recommended_range(text_sensor::TextSensor *sensor);
+  void set_comp0_temp_range(text_sensor::TextSensor *sensor);
+  void set_comp1_temp_range(text_sensor::TextSensor *sensor);
+  void set_comp0_hist_hour_json(text_sensor::TextSensor *sensor);
+  void set_comp1_hist_hour_json(text_sensor::TextSensor *sensor);
+  void set_comp0_hist_day_json(text_sensor::TextSensor *sensor);
+  void set_comp1_hist_day_json(text_sensor::TextSensor *sensor);
+  void set_comp0_hist_week_json(text_sensor::TextSensor *sensor);
+  void set_comp1_hist_week_json(text_sensor::TextSensor *sensor);
+  void set_dc_current_hist_hour_json(text_sensor::TextSensor *sensor);
+  void set_dc_current_hist_day_json(text_sensor::TextSensor *sensor);
+  void set_dc_current_hist_week_json(text_sensor::TextSensor *sensor);
+  void set_station_ssid_0(text_sensor::TextSensor *sensor);
+  void set_station_ssid_1(text_sensor::TextSensor *sensor);
+  void set_station_ssid_2(text_sensor::TextSensor *sensor);
+  void set_station_password_0(text_sensor::TextSensor *sensor);
+  void set_station_password_1(text_sensor::TextSensor *sensor);
+  void set_station_password_2(text_sensor::TextSensor *sensor);
+  void set_station_password_3(text_sensor::TextSensor *sensor);
+  void set_station_password_4(text_sensor::TextSensor *sensor);
+  void set_cfx_direct_password_0(text_sensor::TextSensor *sensor);
+  void set_cfx_direct_password_1(text_sensor::TextSensor *sensor);
+  void set_cfx_direct_password_2(text_sensor::TextSensor *sensor);
+  void set_cfx_direct_password_3(text_sensor::TextSensor *sensor);
+  void set_cfx_direct_password_4(text_sensor::TextSensor *sensor);
+
+
+  // Component
+  void setup() override;
+  void loop() override;
+  float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
+
+ protected:
+  std::string host_;
+  uint16_t port_{13142};
+
+  
   // === Sensors (floats) ===
   // Compartment temps & setpoints
   sensor::Sensor *comp0_temp{nullptr};
@@ -113,16 +200,7 @@ class DometicCFXComponent : public Component {
   text_sensor::TextSensor *cfx_direct_password_2{nullptr};
   text_sensor::TextSensor *cfx_direct_password_3{nullptr};
   text_sensor::TextSensor *cfx_direct_password_4{nullptr};
-
-  // Component
-  void setup() override;
-  void loop() override;
-  float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
-
- protected:
-  std::string host_;
-  uint16_t port_{13142};
-
+  
   int sock_{-1};
   uint32_t last_activity_ms_{0};
   uint32_t last_ping_ms_{0};
