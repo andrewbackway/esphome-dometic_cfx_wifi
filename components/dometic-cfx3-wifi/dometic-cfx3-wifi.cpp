@@ -292,7 +292,7 @@ void DometicCFXComponent::poll_recv_() {
     return;
   }
 
-  ESP_LOGD(TAG, "Receiving data...");
+  //ESP_LOGD(TAG, "Receiving data...");
 
   // Append to buffer and split on '\r'
   this->rxbuf_.append(buf, buf + n);
@@ -506,6 +506,11 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
   }
 
   int code = arr[0];
+  if (code == PING) { // ab added as was missing
+    ESP_LOGD(TAG, "Received PING");
+    this->send_ack_();
+    return true;
+  }
   if (code == NOP) {
     ESP_LOGD(TAG, "Received NOP");
     return true;
