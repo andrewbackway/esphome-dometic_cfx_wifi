@@ -80,6 +80,7 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional("comp1_hist_week_latest"): SENSOR_SCHEMA,
     cv.Optional("dc_current_hist_hour_latest"): SENSOR_SCHEMA,
     # Binary sensors
+      # Binary sensors
     cv.Optional("comp0_door_open"): BINARY_SENSOR_SCHEMA.extend({
         cv.Optional("device_class", default=DEVICE_CLASS_DOOR): cv.string,
     }),
@@ -87,6 +88,12 @@ CONFIG_SCHEMA = cv.Schema({
         cv.Optional("device_class", default=DEVICE_CLASS_DOOR): cv.string,
     }),
     cv.Optional("cooler_power"): BINARY_SENSOR_SCHEMA.extend({
+        cv.Optional("device_class", default=DEVICE_CLASS_POWER): cv.string,
+    }),
+    cv.Optional("comp0_power"): BINARY_SENSOR_SCHEMA.extend({
+        cv.Optional("device_class", default=DEVICE_CLASS_POWER): cv.string,
+    }),
+    cv.Optional("comp1_power"): BINARY_SENSOR_SCHEMA.extend({
         cv.Optional("device_class", default=DEVICE_CLASS_POWER): cv.string,
     }),
     cv.Optional("wifi_mode"): BINARY_SENSOR_SCHEMA.extend({
@@ -138,6 +145,7 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional("alert_voltage"): BINARY_SENSOR_SCHEMA.extend({
         cv.Optional("device_class", default=DEVICE_CLASS_VOLTAGE): cv.string,
     }),
+
     # Text sensors
     cv.Optional("device_name"): TEXT_SENSOR_SCHEMA,
     cv.Optional("product_serial"): TEXT_SENSOR_SCHEMA,
