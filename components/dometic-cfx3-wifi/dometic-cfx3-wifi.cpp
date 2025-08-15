@@ -629,93 +629,92 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
 
   return true;
 }
-
 // === Float sensors ===
-void set_comp0_temp(sensor::Sensor *sensor) { comp0_temp = sensor; }
-void set_comp1_temp(sensor::Sensor *sensor) { comp1_temp = sensor; }
-void set_comp0_set_temp(sensor::Sensor *sensor) { comp0_set_temp = sensor; }
-void set_comp1_set_temp(sensor::Sensor *sensor) { comp1_set_temp = sensor; }
+void DometicCFXComponent::set_comp0_temp(sensor::Sensor *sensor) { comp0_temp = sensor; }
+void DometicCFXComponent::set_comp1_temp(sensor::Sensor *sensor) { comp1_temp = sensor; }
+void DometicCFXComponent::set_comp0_set_temp(sensor::Sensor *sensor) { comp0_set_temp = sensor; }
+void DometicCFXComponent::set_comp1_set_temp(sensor::Sensor *sensor) { comp1_set_temp = sensor; }
 
-void set_dc_voltage(sensor::Sensor *sensor) { dc_voltage = sensor; }
-void set_battery_protection_level(sensor::Sensor *sensor) { battery_protection_level = sensor; }
-void set_power_source(sensor::Sensor *sensor) { power_source = sensor; }
-void set_compartment_count(sensor::Sensor *sensor) { compartment_count = sensor; }
-void set_icemaker_count(sensor::Sensor *sensor) { icemaker_count = sensor; }
+void DometicCFXComponent::set_dc_voltage(sensor::Sensor *sensor) { dc_voltage = sensor; }
+void DometicCFXComponent::set_battery_protection_level(sensor::Sensor *sensor) { battery_protection_level = sensor; }
+void DometicCFXComponent::set_power_source(sensor::Sensor *sensor) { power_source = sensor; }
+void DometicCFXComponent::set_compartment_count(sensor::Sensor *sensor) { compartment_count = sensor; }
+void DometicCFXComponent::set_icemaker_count(sensor::Sensor *sensor) { icemaker_count = sensor; }
 
-void set_comp0_hist_hour_latest(sensor::Sensor *sensor) { comp0_hist_hour_latest = sensor; }
-void set_comp1_hist_hour_latest(sensor::Sensor *sensor) { comp1_hist_hour_latest = sensor; }
-void set_comp0_hist_day_latest(sensor::Sensor *sensor) { comp0_hist_day_latest = sensor; }
-void set_comp1_hist_day_latest(sensor::Sensor *sensor) { comp1_hist_day_latest = sensor; }
-void set_comp0_hist_week_latest(sensor::Sensor *sensor) { comp0_hist_week_latest = sensor; }
-void set_comp1_hist_week_latest(sensor::Sensor *sensor) { comp1_hist_week_latest = sensor; }
-void set_dc_current_hist_hour_latest(sensor::Sensor *sensor) { dc_current_hist_hour_latest = sensor; }
+void DometicCFXComponent::set_comp0_hist_hour_latest(sensor::Sensor *sensor) { comp0_hist_hour_latest = sensor; }
+void DometicCFXComponent::set_comp1_hist_hour_latest(sensor::Sensor *sensor) { comp1_hist_hour_latest = sensor; }
+void DometicCFXComponent::set_comp0_hist_day_latest(sensor::Sensor *sensor) { comp0_hist_day_latest = sensor; }
+void DometicCFXComponent::set_comp1_hist_day_latest(sensor::Sensor *sensor) { comp1_hist_day_latest = sensor; }
+void DometicCFXComponent::set_comp0_hist_week_latest(sensor::Sensor *sensor) { comp0_hist_week_latest = sensor; }
+void DometicCFXComponent::set_comp1_hist_week_latest(sensor::Sensor *sensor) { comp1_hist_week_latest = sensor; }
+void DometicCFXComponent::set_dc_current_hist_hour_latest(sensor::Sensor *sensor) { dc_current_hist_hour_latest = sensor; }
 
-void set_comp0_open_count(sensor::Sensor *sensor) { comp0_open_count = sensor; }
-void set_comp1_open_count(sensor::Sensor *sensor) { comp1_open_count = sensor; }
+void DometicCFXComponent::set_comp0_open_count(sensor::Sensor *sensor) { comp0_open_count = sensor; }
+void DometicCFXComponent::set_comp1_open_count(sensor::Sensor *sensor) { comp1_open_count = sensor; }
 
-void set_presented_temp_unit(sensor::Sensor *sensor) { presented_temp_unit = sensor; }
+void DometicCFXComponent::set_presented_temp_unit(sensor::Sensor *sensor) { presented_temp_unit = sensor; }
 
 // === Binary sensors ===
-void set_cooler_power(binary_sensor::BinarySensor *sensor) { cooler_power = sensor; }
-void set_comp0_power(binary_sensor::BinarySensor *sensor) { comp0_power = sensor; }
-void set_comp1_power(binary_sensor::BinarySensor *sensor) { comp1_power = sensor; }
-void set_comp0_door_open(binary_sensor::BinarySensor *sensor) { comp0_door_open = sensor; }
-void set_comp1_door_open(binary_sensor::BinarySensor *sensor) { comp1_door_open = sensor; }
-void set_icemaker_power(binary_sensor::BinarySensor *sensor) { icemaker_power = sensor; }
-void set_wifi_mode(binary_sensor::BinarySensor *sensor) { wifi_mode = sensor; }
-void set_bluetooth_mode(binary_sensor::BinarySensor *sensor) { bluetooth_mode = sensor; }
-void set_wifi_ap_connected(binary_sensor::BinarySensor *sensor) { wifi_ap_connected = sensor; }
+void DometicCFXComponent::set_cooler_power(binary_sensor::BinarySensor *sensor) { cooler_power = sensor; }
+void DometicCFXComponent::set_comp0_power(binary_sensor::BinarySensor *sensor) { comp0_power = sensor; }
+void DometicCFXComponent::set_comp1_power(binary_sensor::BinarySensor *sensor) { comp1_power = sensor; }
+void DometicCFXComponent::set_comp0_door_open(binary_sensor::BinarySensor *sensor) { comp0_door_open = sensor; }
+void DometicCFXComponent::set_comp1_door_open(binary_sensor::BinarySensor *sensor) { comp1_door_open = sensor; }
+void DometicCFXComponent::set_icemaker_power(binary_sensor::BinarySensor *sensor) { icemaker_power = sensor; }
+void DometicCFXComponent::set_wifi_mode(binary_sensor::BinarySensor *sensor) { wifi_mode = sensor; }
+void DometicCFXComponent::set_bluetooth_mode(binary_sensor::BinarySensor *sensor) { bluetooth_mode = sensor; }
+void DometicCFXComponent::set_wifi_ap_connected(binary_sensor::BinarySensor *sensor) { wifi_ap_connected = sensor; }
 
-void set_err_comm_alarm(binary_sensor::BinarySensor *sensor) { err_comm_alarm = sensor; }
-void set_err_ntc_open_large(binary_sensor::BinarySensor *sensor) { err_ntc_open_large = sensor; }
-void set_err_ntc_short_large(binary_sensor::BinarySensor *sensor) { err_ntc_short_large = sensor; }
-void set_err_solenoid_valve(binary_sensor::BinarySensor *sensor) { err_solenoid_valve = sensor; }
-void set_err_ntc_open_small(binary_sensor::BinarySensor *sensor) { err_ntc_open_small = sensor; }
-void set_err_ntc_short_small(binary_sensor::BinarySensor *sensor) { err_ntc_short_small = sensor; }
-void set_err_fan_overvoltage(binary_sensor::BinarySensor *sensor) { err_fan_overvoltage = sensor; }
-void set_err_compressor_start_fail(binary_sensor::BinarySensor *sensor) { err_compressor_start_fail = sensor; }
-void set_err_compressor_speed(binary_sensor::BinarySensor *sensor) { err_compressor_speed = sensor; }
-void set_err_controller_overtemp(binary_sensor::BinarySensor *sensor) { err_controller_overtemp = sensor; }
+void DometicCFXComponent::set_err_comm_alarm(binary_sensor::BinarySensor *sensor) { err_comm_alarm = sensor; }
+void DometicCFXComponent::set_err_ntc_open_large(binary_sensor::BinarySensor *sensor) { err_ntc_open_large = sensor; }
+void DometicCFXComponent::set_err_ntc_short_large(binary_sensor::BinarySensor *sensor) { err_ntc_short_large = sensor; }
+void DometicCFXComponent::set_err_solenoid_valve(binary_sensor::BinarySensor *sensor) { err_solenoid_valve = sensor; }
+void DometicCFXComponent::set_err_ntc_open_small(binary_sensor::BinarySensor *sensor) { err_ntc_open_small = sensor; }
+void DometicCFXComponent::set_err_ntc_short_small(binary_sensor::BinarySensor *sensor) { err_ntc_short_small = sensor; }
+void DometicCFXComponent::set_err_fan_overvoltage(binary_sensor::BinarySensor *sensor) { err_fan_overvoltage = sensor; }
+void DometicCFXComponent::set_err_compressor_start_fail(binary_sensor::BinarySensor *sensor) { err_compressor_start_fail = sensor; }
+void DometicCFXComponent::set_err_compressor_speed(binary_sensor::BinarySensor *sensor) { err_compressor_speed = sensor; }
+void DometicCFXComponent::set_err_controller_overtemp(binary_sensor::BinarySensor *sensor) { err_controller_overtemp = sensor; }
 
-void set_alert_temp_dcm(binary_sensor::BinarySensor *sensor) { alert_temp_dcm = sensor; }
-void set_alert_temp_cc(binary_sensor::BinarySensor *sensor) { alert_temp_cc = sensor; }
-void set_alert_door(binary_sensor::BinarySensor *sensor) { alert_door = sensor; }
-void set_alert_voltage(binary_sensor::BinarySensor *sensor) { alert_voltage = sensor; }
+void DometicCFXComponent::set_alert_temp_dcm(binary_sensor::BinarySensor *sensor) { alert_temp_dcm = sensor; }
+void DometicCFXComponent::set_alert_temp_cc(binary_sensor::BinarySensor *sensor) { alert_temp_cc = sensor; }
+void DometicCFXComponent::set_alert_door(binary_sensor::BinarySensor *sensor) { alert_door = sensor; }
+void DometicCFXComponent::set_alert_voltage(binary_sensor::BinarySensor *sensor) { alert_voltage = sensor; }
 
 // === Text sensors ===
-void set_product_serial(text_sensor::TextSensor *sensor) { product_serial = sensor; }
-void set_device_name(text_sensor::TextSensor *sensor) { device_name = sensor; }
+void DometicCFXComponent::set_product_serial(text_sensor::TextSensor *sensor) { product_serial = sensor; }
+void DometicCFXComponent::set_device_name(text_sensor::TextSensor *sensor) { device_name = sensor; }
 
-void set_comp0_recommended_range(text_sensor::TextSensor *sensor) { comp0_recommended_range = sensor; }
-void set_comp1_recommended_range(text_sensor::TextSensor *sensor) { comp1_recommended_range = sensor; }
-void set_comp0_temp_range(text_sensor::TextSensor *sensor) { comp0_temp_range = sensor; }
-void set_comp1_temp_range(text_sensor::TextSensor *sensor) { comp1_temp_range = sensor; }
+void DometicCFXComponent::set_comp0_recommended_range(text_sensor::TextSensor *sensor) { comp0_recommended_range = sensor; }
+void DometicCFXComponent::set_comp1_recommended_range(text_sensor::TextSensor *sensor) { comp1_recommended_range = sensor; }
+void DometicCFXComponent::set_comp0_temp_range(text_sensor::TextSensor *sensor) { comp0_temp_range = sensor; }
+void DometicCFXComponent::set_comp1_temp_range(text_sensor::TextSensor *sensor) { comp1_temp_range = sensor; }
 
-void set_comp0_hist_hour_json(text_sensor::TextSensor *sensor) { comp0_hist_hour_json = sensor; }
-void set_comp1_hist_hour_json(text_sensor::TextSensor *sensor) { comp1_hist_hour_json = sensor; }
-void set_comp0_hist_day_json(text_sensor::TextSensor *sensor) { comp0_hist_day_json = sensor; }
-void set_comp1_hist_day_json(text_sensor::TextSensor *sensor) { comp1_hist_day_json = sensor; }
-void set_comp0_hist_week_json(text_sensor::TextSensor *sensor) { comp0_hist_week_json = sensor; }
-void set_comp1_hist_week_json(text_sensor::TextSensor *sensor) { comp1_hist_week_json = sensor; }
-void set_dc_current_hist_hour_json(text_sensor::TextSensor *sensor) { dc_current_hist_hour_json = sensor; }
-void set_dc_current_hist_day_json(text_sensor::TextSensor *sensor) { dc_current_hist_day_json = sensor; }
-void set_dc_current_hist_week_json(text_sensor::TextSensor *sensor) { dc_current_hist_week_json = sensor; }
+void DometicCFXComponent::set_comp0_hist_hour_json(text_sensor::TextSensor *sensor) { comp0_hist_hour_json = sensor; }
+void DometicCFXComponent::set_comp1_hist_hour_json(text_sensor::TextSensor *sensor) { comp1_hist_hour_json = sensor; }
+void DometicCFXComponent::set_comp0_hist_day_json(text_sensor::TextSensor *sensor) { comp0_hist_day_json = sensor; }
+void DometicCFXComponent::set_comp1_hist_day_json(text_sensor::TextSensor *sensor) { comp1_hist_day_json = sensor; }
+void DometicCFXComponent::set_comp0_hist_week_json(text_sensor::TextSensor *sensor) { comp0_hist_week_json = sensor; }
+void DometicCFXComponent::set_comp1_hist_week_json(text_sensor::TextSensor *sensor) { comp1_hist_week_json = sensor; }
+void DometicCFXComponent::set_dc_current_hist_hour_json(text_sensor::TextSensor *sensor) { dc_current_hist_hour_json = sensor; }
+void DometicCFXComponent::set_dc_current_hist_day_json(text_sensor::TextSensor *sensor) { dc_current_hist_day_json = sensor; }
+void DometicCFXComponent::set_dc_current_hist_week_json(text_sensor::TextSensor *sensor) { dc_current_hist_week_json = sensor; }
 
-void set_station_ssid_0(text_sensor::TextSensor *sensor) { station_ssid_0 = sensor; }
-void set_station_ssid_1(text_sensor::TextSensor *sensor) { station_ssid_1 = sensor; }
-void set_station_ssid_2(text_sensor::TextSensor *sensor) { station_ssid_2 = sensor; }
+void DometicCFXComponent::set_station_ssid_0(text_sensor::TextSensor *sensor) { station_ssid_0 = sensor; }
+void DometicCFXComponent::set_station_ssid_1(text_sensor::TextSensor *sensor) { station_ssid_1 = sensor; }
+void DometicCFXComponent::set_station_ssid_2(text_sensor::TextSensor *sensor) { station_ssid_2 = sensor; }
 
-void set_station_password_0(text_sensor::TextSensor *sensor) { station_password_0 = sensor; }
-void set_station_password_1(text_sensor::TextSensor *sensor) { station_password_1 = sensor; }
-void set_station_password_2(text_sensor::TextSensor *sensor) { station_password_2 = sensor; }
-void set_station_password_3(text_sensor::TextSensor *sensor) { station_password_3 = sensor; }
-void set_station_password_4(text_sensor::TextSensor *sensor) { station_password_4 = sensor; }
+void DometicCFXComponent::set_station_password_0(text_sensor::TextSensor *sensor) { station_password_0 = sensor; }
+void DometicCFXComponent::set_station_password_1(text_sensor::TextSensor *sensor) { station_password_1 = sensor; }
+void DometicCFXComponent::set_station_password_2(text_sensor::TextSensor *sensor) { station_password_2 = sensor; }
+void DometicCFXComponent::set_station_password_3(text_sensor::TextSensor *sensor) { station_password_3 = sensor; }
+void DometicCFXComponent::set_station_password_4(text_sensor::TextSensor *sensor) { station_password_4 = sensor; }
 
-void set_cfx_direct_password_0(text_sensor::TextSensor *sensor) { cfx_direct_password_0 = sensor; }
-void set_cfx_direct_password_1(text_sensor::TextSensor *sensor) { cfx_direct_password_1 = sensor; }
-void set_cfx_direct_password_2(text_sensor::TextSensor *sensor) { cfx_direct_password_2 = sensor; }
-void set_cfx_direct_password_3(text_sensor::TextSensor *sensor) { cfx_direct_password_3 = sensor; }
-void set_cfx_direct_password_4(text_sensor::TextSensor *sensor) { cfx_direct_password_4 = sensor; }
+void DometicCFXComponent::set_cfx_direct_password_0(text_sensor::TextSensor *sensor) { cfx_direct_password_0 = sensor; }
+void DometicCFXComponent::set_cfx_direct_password_1(text_sensor::TextSensor *sensor) { cfx_direct_password_1 = sensor; }
+void DometicCFXComponent::set_cfx_direct_password_2(text_sensor::TextSensor *sensor) { cfx_direct_password_2 = sensor; }
+void DometicCFXComponent::set_cfx_direct_password_3(text_sensor::TextSensor *sensor) { cfx_direct_password_3 = sensor; }
+void DometicCFXComponent::set_cfx_direct_password_4(text_sensor::TextSensor *sensor) { cfx_direct_password_4 = sensor; }
 
 
 }  // namespace dometic_cfx
