@@ -19,7 +19,7 @@ from esphome.const import (
 DEPENDENCIES = ["network", "json", "sensor", "binary_sensor", "text_sensor"]
 AUTO_LOAD = ["network", "json", "sensor", "binary_sensor", "text_sensor"]
 
-dometic_cfx_wifi_ns = cg.esphome_ns.namespace("dometic_cfx")
+dometic_cfx_wifi_ns = cg.esphome_ns.namespace("dometic-cfx3-wifi")
 DometicCfxWifi = dometic_cfx_wifi_ns.class_("DometicCFXComponent", cg.Component)
 
 # Sensor schema for numeric sensors
