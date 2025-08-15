@@ -620,7 +620,7 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
     else if (topic_is(0,65,3,1)) { auto p=decode_history(); publish_text_(dc_current_hist_day_json,p.second); }
     else if (topic_is(0,66,3,1)) { auto p=decode_history(); publish_text_(dc_current_hist_week_json,p.second); }
     else {
-      ESP_LOGW(TAG, "Uknown topic: %d.%d.%d.%d", a, b, c, d);
+      ESP_LOGW(TAG, "Unknown topic: %d.%d.%d.%d", a, b, c, d);
     }
     // ACK all publishes to match app behavior
     this->send_ack_();
