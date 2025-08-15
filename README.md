@@ -15,7 +15,7 @@ This repository contains an ESPHome configuration for integrating Dometic CFX3 p
 
 - **Hardware**:
   - ESP32 or ESP8266 microcontroller (e.g., NodeMCU, Wemos D1 Mini).
-  - Dometic CFX3 fridge/freezer with fridge configured in WiFi mode and connected to same wireless network as ESPHome device
+  - Dometic CFX3 fridge/freezer with fridge configured in WiFi mode and connected to same wireless network as ESPHome device (configured via Mobile Cooling App)
 - **Software**:
   - [ESPHome](https://esphome.io/) installed and configured.
   - [Home Assistant](https://www.home-assistant.io/) (optional, for integration).
