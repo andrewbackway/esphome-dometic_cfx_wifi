@@ -33,6 +33,7 @@ SENSOR_SCHEMA = cv.Schema({
     cv.Optional("device_class"): cv.string,
     cv.Optional("accuracy_decimals", default=1): cv.int_range(min=0, max=5),
     cv.Optional("disabled_by_default", default=False): cv.boolean,
+    cv.Optional("force_update", default=False): cv.boolean
 })
 
 # Binary sensor schema
@@ -42,6 +43,7 @@ BINARY_SENSOR_SCHEMA = cv.Schema({
     cv.Optional(CONF_ICON): cv.icon,
     cv.Optional("device_class"): cv.string,
     cv.Optional("disabled_by_default", default=False): cv.boolean,
+    cv.Optional("force_update", default=False): cv.boolean
 })
 
 # Text sensor schema
@@ -50,6 +52,7 @@ TEXT_SENSOR_SCHEMA = cv.Schema({
     cv.Optional(CONF_NAME): cv.string,
     cv.Optional(CONF_ICON): cv.icon,
     cv.Optional("disabled_by_default", default=False): cv.boolean,
+    cv.Optional("force_update", default=False): cv.boolean,
 })
 
 CONFIG_SCHEMA = cv.Schema({
