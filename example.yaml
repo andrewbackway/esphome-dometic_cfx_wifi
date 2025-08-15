@@ -1,0 +1,44 @@
+esphome:
+  name: esphome-web-cfx3
+  friendly_name: ESPHome Dometic CFX3 WiFi
+  min_version: 2025.5.0
+  name_add_mac_suffix: false
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+external_components:
+ - source: github://andrewbackway/esphome-dometic-cfx3-wifi
+   refresh: 1s
+
+# Allow Over-The-Air updates
+ota:
+- platform: esphome
+
+wifi:
+  ssid: TODO
+  password: TODO
+
+dometic-cfx3-wifi:
+  host: "10.1.0.55"
+  comp0_temp:
+    name: "Compartment 0 Temperature"
+    icon: "mdi:thermometer"
+  comp1_temp:
+    name: "Compartment 1 Temperature"
+    icon: "mdi:thermometer"
+  dc_voltage:
+    name: "DC Voltage"
+    icon: "mdi:flash"
+  comp0_door_open:
+    name: "Compartment 0 Door"
+    icon: "mdi:door"
+  comp1_door_open:
+    name: "Compartment 1 Door"
+    icon: "mdi:door"
+  device_name:
+    name: "Device Name"
+  product_serial:
+    name: "Product Serial"
