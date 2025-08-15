@@ -1,25 +1,31 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
+from esphome.components import sensor, binary_sensor, text_sensor
 from esphome.const import (
     CONF_ID,
-    CONF_ICON,
     CONF_NAME,
-    DEVICE_CLASS_CONNECTIVITY,
-    DEVICE_CLASS_DOOR,
-    DEVICE_CLASS_POWER,
-    DEVICE_CLASS_PROBLEM,
+    CONF_ICON,
+    UNIT_CELSIUS,
+    UNIT_VOLT,
+    UNIT_AMPERE,
+    DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_VOLTAGE,
+    DEVICE_CLASS_CURRENT,
+    DEVICE_CLASS_POWER,
+    DEVICE_CLASS_DOOR,
+    DEVICE_CLASS_PROBLEM,
+    DEVICE_CLASS_CONNECTIVITY,
 )
-from esphome.components import sensor, binary_sensor, text_sensor
 
-DEPENDENCIES = ["wifi"]
+DEPENDENCIES = ["network", "json", "sensor", "binary_sensor", "text_sensor"]
+AUTO_LOAD = ["network", "json", "sensor", "binary_sensor", "text_sensor"]
 
-dometic_cfx3_wifi_ns = cg.esphome_ns.namespace("dometic_cfx3_wifi")
-DometicCFX3WiFi = dometic_cfx3_wifi_ns.class_("DometicCFX3WiFi", cg.Component)
+dometic_cfx_wifi_ns = cg.esphome_ns.namespace("dometic-cfx3-wifi")
+DometicCfxWifi = dometic_cfx_wifi_ns.class_("DometicCFXComponent", cg.Component)
 
 # Sensor schema for numeric sensors
 SENSOR_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(sensor.Sensor),
+    cv.GenerateID(): cv.declare_id(sensor.Sensor),  # Use sensor.Sensor
     cv.Optional(CONF_NAME): cv.string,
     cv.Optional(CONF_ICON): cv.icon,
     cv.Optional("unit_of_measurement"): cv.string,
@@ -30,7 +36,7 @@ SENSOR_SCHEMA = cv.Schema({
 
 # Binary sensor schema
 BINARY_SENSOR_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(binary_sensor.BinarySensor),
+    cv.GenerateID(): cv.declare_id(binary_sensor.BinarySensor),  # Use binary_sensor.BinarySensor
     cv.Optional(CONF_NAME): cv.string,
     cv.Optional(CONF_ICON): cv.icon,
     cv.Optional("device_class"): cv.string,
@@ -39,37 +45,52 @@ BINARY_SENSOR_SCHEMA = cv.Schema({
 
 # Text sensor schema
 TEXT_SENSOR_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(text_sensor.TextSensor),
+    cv.GenerateID(): cv.declare_id(text_sensor.TextSensor),  # Use text_sensor.TextSensor
     cv.Optional(CONF_NAME): cv.string,
     cv.Optional(CONF_ICON): cv.icon,
     cv.Optional("disabled_by_default", default=False): cv.boolean,
 })
 
 CONFIG_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(DometicCFX3WiFi),
-
+    cv.GenerateID(): cv.declare_id(DometicCfxWifi),
+    cv.Required("host"): cv.string,
+    cv.Optional("port", default=13142): cv.port,
     # Numeric sensors
-    cv.Optional("cooler_temp_set"): SENSOR_SCHEMA,
-    cv.Optional("comp0_temp_set"): SENSOR_SCHEMA,
-    cv.Optional("comp1_temp_set"): SENSOR_SCHEMA,
-    cv.Optional("cooler_voltage"): SENSOR_SCHEMA,
-    cv.Optional("cooler_current"): SENSOR_SCHEMA,
-    cv.Optional("cooler_power"): SENSOR_SCHEMA,
-    cv.Optional("cooler_energy"): SENSOR_SCHEMA,
-    cv.Optional("cooler_temp"): SENSOR_SCHEMA,
-    cv.Optional("comp0_temp"): SENSOR_SCHEMA,
-    cv.Optional("comp1_temp"): SENSOR_SCHEMA,
-    cv.Optional("comp0_fan_speed"): SENSOR_SCHEMA,
-    cv.Optional("comp1_fan_speed"): SENSOR_SCHEMA,
-
+    cv.Optional("comp0_temp"): SENSOR_SCHEMA.extend({
+        cv.Optional("unit_of_measurement", default=UNIT_CELSIUS): cv.string,
+        cv.Optional("device_class", default=DEVICE_CLASS_TEMPERATURE): cv.string,
+    }),
+    cv.Optional("comp1_temp"): SENSOR_SCHEMA.extend({
+        cv.Optional("unit_of_measurement", default=UNIT_CELSIUS): cv.string,
+        cv.Optional("device_class", default=DEVICE_CLASS_TEMPERATURE): cv.string,
+    }),
+    cv.Optional("dc_voltage"): SENSOR_SCHEMA.extend({
+        cv.Optional("unit_of_measurement", default=UNIT_VOLT): cv.string,
+        cv.Optional("device_class", default=DEVICE_CLASS_VOLTAGE): cv.string,
+    }),
+    cv.Optional("battery_protection_level"): SENSOR_SCHEMA,
+    cv.Optional("power_source"): SENSOR_SCHEMA,
+    cv.Optional("compartment_count"): SENSOR_SCHEMA,
+    cv.Optional("icemaker_count"): SENSOR_SCHEMA,
+    cv.Optional("comp0_open_count"): SENSOR_SCHEMA,
+    cv.Optional("comp1_open_count"): SENSOR_SCHEMA,
+    cv.Optional("presented_temp_unit"): SENSOR_SCHEMA,
+    cv.Optional("comp0_hist_hour_latest"): SENSOR_SCHEMA,
+    cv.Optional("comp1_hist_hour_latest"): SENSOR_SCHEMA,
+    cv.Optional("comp0_hist_day_latest"): SENSOR_SCHEMA,
+    cv.Optional("comp1_hist_day_latest"): SENSOR_SCHEMA,
+    cv.Optional("comp0_hist_week_latest"): SENSOR_SCHEMA,
+    cv.Optional("comp1_hist_week_latest"): SENSOR_SCHEMA,
+    cv.Optional("dc_current_hist_hour_latest"): SENSOR_SCHEMA,
     # Binary sensors
+      # Binary sensors
     cv.Optional("comp0_door_open"): BINARY_SENSOR_SCHEMA.extend({
         cv.Optional("device_class", default=DEVICE_CLASS_DOOR): cv.string,
     }),
     cv.Optional("comp1_door_open"): BINARY_SENSOR_SCHEMA.extend({
         cv.Optional("device_class", default=DEVICE_CLASS_DOOR): cv.string,
     }),
-    cv.Optional("cooler_power_on"): BINARY_SENSOR_SCHEMA.extend({
+    cv.Optional("cooler_power"): BINARY_SENSOR_SCHEMA.extend({
         cv.Optional("device_class", default=DEVICE_CLASS_POWER): cv.string,
     }),
     cv.Optional("comp0_power"): BINARY_SENSOR_SCHEMA.extend({
@@ -129,11 +150,36 @@ CONFIG_SCHEMA = cv.Schema({
     }),
 
     # Text sensors
-    cv.Optional("serial_number"): TEXT_SENSOR_SCHEMA,
-    cv.Optional("model_number"): TEXT_SENSOR_SCHEMA,
-    cv.Optional("firmware_version"): TEXT_SENSOR_SCHEMA,
-    cv.Optional("mac_address"): TEXT_SENSOR_SCHEMA,
-})
+    cv.Optional("device_name"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("product_serial"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("comp0_recommended_range"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("comp1_recommended_range"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("comp0_temp_range"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("comp1_temp_range"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("comp0_hist_hour_json"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("comp1_hist_hour_json"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("comp0_hist_day_json"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("comp1_hist_day_json"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("comp0_hist_week_json"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("comp1_hist_week_json"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("dc_current_hist_hour_json"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("dc_current_hist_day_json"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("dc_current_hist_week_json"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("station_ssid_0"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("station_ssid_1"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("station_ssid_2"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("station_password_0"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("station_password_1"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("station_password_2"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("station_password_3"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("station_password_4"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("cfx_direct_password_0"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("cfx_direct_password_1"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("cfx_direct_password_2"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("cfx_direct_password_3"): TEXT_SENSOR_SCHEMA,
+    cv.Optional("cfx_direct_password_4"): TEXT_SENSOR_SCHEMA,
+}).extend(cv.COMPONENT_SCHEMA)
+
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
@@ -189,3 +235,4 @@ async def to_code(config):
                 cg.add(ts_obj.set_icon(ts_conf[CONF_ICON]))
             await text_sensor.register_text_sensor(ts_obj, ts_conf)
             cg.add(getattr(var, f"set_{ts_key}")(ts_obj))
+
