@@ -217,7 +217,6 @@ async def to_code(config):
             if "device_class" in conf:
                 cg.add(obj.set_device_class(conf["device_class"]))
             cg.add(obj.set_disabled_by_default(conf.get("disabled_by_default", False)))
-            cg.add(obj.set_force_update(conf.get("force_update", False)))
             await binary_sensor.register_binary_sensor(obj, conf)
             cg.add(getattr(var, f"set_{sensor_key}")(obj))
 
@@ -229,7 +228,6 @@ async def to_code(config):
             if CONF_ICON in conf:
                 cg.add(obj.set_icon(conf[CONF_ICON]))
             cg.add(obj.set_disabled_by_default(conf.get("disabled_by_default", False)))
-            cg.add(obj.set_force_update(conf.get("force_update", False)))
             await text_sensor.register_text_sensor(obj, conf)
             cg.add(getattr(var, f"set_{sensor_key}")(obj))
 
