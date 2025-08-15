@@ -397,7 +397,6 @@ bool DometicCFXComponent::send_json_(const std::string &json) {
     ssize_t n = ::send(this->sock_, framed.data(), framed.size(), 0);
     ok = (n == (ssize_t)framed.size());
   }
-  ESP_LOGD(TAG, "After sending JSON");
 
   if (!ok) ESP_LOGW(TAG, "send() short or failed");
   return ok;
@@ -521,7 +520,10 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
   }
   if (code == PUBLISH) {
     ESP_LOGD(TAG, "Received Publish");
-    if (arr.size() < 7) return true;
+    if (arr.size() < 6) {
+      ESP_LOGW(TAG, "Received invalid frame array");
+      return true;
+    }
 
     int a=arr[1], b=arr[2], c=arr[3], d=arr[4];
     int value_type = arr[5]; (void)value_type;
