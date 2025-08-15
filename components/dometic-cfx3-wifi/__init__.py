@@ -189,6 +189,9 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
+    cg.add(var.set_host(config["host"]))
+    cg.add(var.set_port(config.get("port", 13142)))
+
     # Helper to register float sensors
     async def setup_float_sensor(sensor_key):
         if sensor_key in config:
