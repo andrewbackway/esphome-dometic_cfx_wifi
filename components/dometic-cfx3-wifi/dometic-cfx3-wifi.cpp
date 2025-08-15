@@ -520,37 +520,16 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
   }
   if (code == PUBLISH) {
     ESP_LOGD(TAG, "Received Publish");
-    if (arr.size() < 5) { // ab change
+    if (arr.size() < 5) { 
       ESP_LOGW(TAG, "Received invalid frame array");
       return true;
     }
-
-     // AB Debug: Log val
-    std::string arr_log = "arr=[";
-    for (size_t i = 0; i < arr.size(); ++i) {
-      arr_log += std::to_string(arr[i]);
-      if (i + 1 < arr.size()) arr_log += ",";
-    }
-    arr_log += "]";
-    ESP_LOGD(TAG, "ARR Value bytes: %s", arr_log.c_str());
-    // eof
 
     int a=arr[1], b=arr[2], c=arr[3], d=arr[4];
     int value_type = arr[5]; (void)value_type;
 
     std::vector<int> val;
     for (size_t i=5; i<arr.size(); ++i) val.push_back(arr[i] & 0xFF);
-
-
-    // AB Debug: Log val
-    std::string val_log = "val=[";
-    for (size_t i = 0; i < val.size(); ++i) {
-      val_log += std::to_string(val[i]);
-      if (i + 1 < val.size()) val_log += ",";
-    }
-    val_log += "]";
-    ESP_LOGD(TAG, "Value bytes: %s", val_log.c_str());
-    // eof
 
     auto topic_is = [&](int ta,int tb,int tc,int td){ return ta==a && tb==b && tc==c && td==d; };
     auto decode_bool = [&]()->bool { return !val.empty() && (val[0] != 0); };
