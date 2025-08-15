@@ -168,7 +168,6 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional("cfx_direct_password_3"): TEXT_SENSOR_SCHEMA,
     cv.Optional("cfx_direct_password_4"): TEXT_SENSOR_SCHEMA,
 }).extend(cv.COMPONENT_SCHEMA)
-
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
@@ -185,21 +184,21 @@ async def to_code(config):
     ]:
         if sensor_key in config:
             sensor_conf = config[sensor_key]
-            sensor = cg.new_Pvariable(sensor_conf[CONF_ID], sensor_conf.get(CONF_NAME))
+            sensor_obj = cg.new_Pvariable(sensor_conf[CONF_ID], sensor_conf.get(CONF_NAME))
             if CONF_ICON in sensor_conf:
-                cg.add(sensor.set_icon(sensor_conf[CONF_ICON]))
+                cg.add(sensor_obj.set_icon(sensor_conf[CONF_ICON]))
             if "unit_of_measurement" in sensor_conf:
-                cg.add(sensor.set_unit_of_measurement(sensor_conf["unit_of_measurement"]))
+                cg.add(sensor_obj.set_unit_of_measurement(sensor_conf["unit_of_measurement"]))
             if "device_class" in sensor_conf:
-                cg.add(sensor.set_device_class(sensor_conf["device_class"]))
+                cg.add(sensor_obj.set_device_class(sensor_conf["device_class"]))
             if "accuracy_decimals" in sensor_conf:
-                cg.add(sensor.set_accuracy_decimals(sensor_conf["accuracy_decimals"]))
-            await cg.register_sensor(sensor)
-            cg.add(getattr(var, f"set_{sensor_key}")(sensor))
+                cg.add(sensor_obj.set_accuracy_decimals(sensor_conf["accuracy_decimals"]))
+            await sensor.register_sensor(sensor_obj)
+            cg.add(getattr(var, f"set_{sensor_key}")(sensor_obj))
 
     # Register binary sensors
     for binary_sensor_key in [
-        "comp0_door_open", "comp1_door_open", "cooler_power", "icemaker_count",  # Note: icemaker_count seems to be a typo
+        "comp0_door_open", "comp1_door_open", "cooler_power", "icemaker_count",
         "comp0_power", "comp1_power", "wifi_mode", "bluetooth_mode",
         "wifi_ap_connected", "err_comm_alarm", "err_ntc_open_large",
         "err_ntc_short_large", "err_solenoid_valve", "err_ntc_open_small",
@@ -209,13 +208,13 @@ async def to_code(config):
     ]:
         if binary_sensor_key in config:
             sensor_conf = config[binary_sensor_key]
-            sensor = cg.new_Pvariable(sensor_conf[CONF_ID], sensor_conf.get(CONF_NAME))
+            sensor_obj = cg.new_Pvariable(sensor_conf[CONF_ID], sensor_conf.get(CONF_NAME))
             if CONF_ICON in sensor_conf:
-                cg.add(sensor.set_icon(sensor_conf[CONF_ICON]))
+                cg.add(sensor_obj.set_icon(sensor_conf[CONF_ICON]))
             if "device_class" in sensor_conf:
-                cg.add(sensor.set_device_class(sensor_conf["device_class"]))
-            await cg.register_binary_sensor(sensor)
-            cg.add(getattr(var, f"set_{binary_sensor_key}")(sensor))
+                cg.add(sensor_obj.set_device_class(sensor_conf["device_class"]))
+            await binary_sensor.register_binary_sensor(sensor_obj)
+            cg.add(getattr(var, f"set_{binary_sensor_key}")(sensor_obj))
 
     # Register text sensors
     for text_sensor_key in [
@@ -231,8 +230,8 @@ async def to_code(config):
     ]:
         if text_sensor_key in config:
             sensor_conf = config[text_sensor_key]
-            sensor = cg.new_Pvariable(sensor_conf[CONF_ID], sensor_conf.get(CONF_NAME))
+            sensor_obj = cg.new_Pvariable(sensor_conf[CONF_ID], sensor_conf.get(CONF_NAME))
             if CONF_ICON in sensor_conf:
-                cg.add(sensor.set_icon(sensor_conf[CONF_ICON]))
-            await cg.register_text_sensor(sensor)
-            cg.add(getattr(var, f"set_{text_sensor_key}")(sensor))
+                cg.add(sensor_obj.set_icon(sensor_conf[CONF_ICON]))
+            await text_sensor.register_text_sensor(sensor_obj)
+            cg.add(getattr(var, f"set_{text_sensor_key}")(sensor_obj))
