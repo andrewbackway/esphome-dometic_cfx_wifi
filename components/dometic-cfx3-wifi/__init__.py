@@ -21,7 +21,7 @@ DEPENDENCIES = ["network", "json", "sensor", "binary_sensor", "text_sensor"]
 AUTO_LOAD = ["network", "json", "sensor", "binary_sensor", "text_sensor"]
 
 # Use underscores (C++ identifiers can't contain '-')
-dometic_cfx_wifi_ns = cg.esphome_ns.namespace("dometic-cfx3-wifi")
+dometic_cfx_wifi_ns = cg.esphome_ns.namespace("dometic_cfx")
 DometicCfxWifi = dometic_cfx_wifi_ns.class_("DometicCFXComponent", cg.Component)
 
 # Sensor schema for numeric sensors
