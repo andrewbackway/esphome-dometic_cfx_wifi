@@ -520,7 +520,7 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
   }
   if (code == PUBLISH) {
     ESP_LOGD(TAG, "Received Publish");
-    if (arr.size() < 6) {
+    if (arr.size() < 5) { // ab change
       ESP_LOGW(TAG, "Received invalid frame array");
       return true;
     }
@@ -619,7 +619,9 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
     else if (topic_is(0,64,3,1)) { auto p=decode_history(); publish_float_(dc_current_hist_hour_latest,p.first); publish_text_(dc_current_hist_hour_json,p.second); }
     else if (topic_is(0,65,3,1)) { auto p=decode_history(); publish_text_(dc_current_hist_day_json,p.second); }
     else if (topic_is(0,66,3,1)) { auto p=decode_history(); publish_text_(dc_current_hist_week_json,p.second); }
-
+    else {
+      ESP_LOGW(TAG, "Uknown topic: %d.%d.%d.%d", a, b, c, d);
+    }
     // ACK all publishes to match app behavior
     this->send_ack_();
     return true;
