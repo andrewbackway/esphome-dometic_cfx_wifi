@@ -539,7 +539,7 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
     int value_type = arr[5]; (void)value_type;
 
     std::vector<int> val;
-    for (size_t i=6; i<arr.size(); ++i) val.push_back(arr[i] & 0xFF);
+    for (size_t i=5; i<arr.size(); ++i) val.push_back(arr[i] & 0xFF);
 
 
     // AB Debug: Log val
