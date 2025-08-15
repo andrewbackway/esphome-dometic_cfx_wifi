@@ -529,7 +529,7 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
     std::string arr_log = "arr=[";
     for (size_t i = 0; i < arr.size(); ++i) {
       arr_log += std::to_string(arr[i]);
-      if (i + 1 < arr.size()) val_log += ",";
+      if (i + 1 < arr.size()) arr_log += ",";
     }
     arr_log += "]";
     ESP_LOGD(TAG, "ARR Value bytes: %s", arr_log.c_str());
