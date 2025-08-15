@@ -529,7 +529,7 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
     int value_type = arr[5]; (void)value_type;
 
     std::vector<int> val;
-    for (size_t i=5; i<arr.size(); ++i) val.push_back(arr[i] & 0xFF);
+    for (size_t i=6; i<arr.size(); ++i) val.push_back(arr[i] & 0xFF);
 
     auto topic_is = [&](int ta,int tb,int tc,int td){ return ta==a && tb==b && tc==c && td==d; };
     auto decode_bool = [&]()->bool { return !val.empty() && (val[0] != 0); };
