@@ -1,5 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
+from esphome.components import sensor, binary_sensor, text_sensor
 from esphome.const import (
     CONF_ID,
     CONF_NAME,
@@ -24,7 +25,7 @@ DometicCfxWifi = dometic_cfx_wifi_ns.class_("DometicCFXComponent", cg.Component)
 
 # Sensor schema for numeric sensors
 SENSOR_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(cg.Sensor),  # Generate ID for each sensor
+    cv.GenerateID(): cv.declare_id(sensor.Sensor),  # Use sensor.Sensor
     cv.Optional(CONF_NAME): cv.string,
     cv.Optional(CONF_ICON): cv.icon,
     cv.Optional("unit_of_measurement"): cv.string,
@@ -34,7 +35,7 @@ SENSOR_SCHEMA = cv.Schema({
 
 # Binary sensor schema
 BINARY_SENSOR_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(cg.BinarySensor),  # Generate ID for each binary sensor
+    cv.GenerateID(): cv.declare_id(binary_sensor.BinarySensor),  # Use binary_sensor.BinarySensor
     cv.Optional(CONF_NAME): cv.string,
     cv.Optional(CONF_ICON): cv.icon,
     cv.Optional("device_class"): cv.string,
@@ -42,7 +43,7 @@ BINARY_SENSOR_SCHEMA = cv.Schema({
 
 # Text sensor schema
 TEXT_SENSOR_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(cg.TextSensor),  # Generate ID for each text sensor
+    cv.GenerateID(): cv.declare_id(text_sensor.TextSensor),  # Use text_sensor.TextSensor
     cv.Optional(CONF_NAME): cv.string,
     cv.Optional(CONF_ICON): cv.icon,
 })
@@ -198,7 +199,7 @@ async def to_code(config):
 
     # Register binary sensors
     for binary_sensor_key in [
-        "comp0_door_open", "comp1_door_open", "cooler_power", "icemaker_count",
+        "comp0_door_open", "comp1_door_open", "cooler_power", "icemaker_count",  # Note: icemaker_count seems to be a typo
         "comp0_power", "comp1_power", "wifi_mode", "bluetooth_mode",
         "wifi_ap_connected", "err_comm_alarm", "err_ntc_open_large",
         "err_ntc_short_large", "err_solenoid_valve", "err_ntc_open_small",
