@@ -20,12 +20,13 @@ from esphome.const import (
 DEPENDENCIES = ["network", "json", "sensor", "binary_sensor", "text_sensor"]
 AUTO_LOAD = ["network", "json", "sensor", "binary_sensor", "text_sensor"]
 
+# Use underscores (C++ identifiers can't contain '-')
 dometic_cfx_wifi_ns = cg.esphome_ns.namespace("dometic-cfx3-wifi")
 DometicCfxWifi = dometic_cfx_wifi_ns.class_("DometicCFXComponent", cg.Component)
 
 # Sensor schema for numeric sensors
 SENSOR_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(sensor.Sensor),  # Use sensor.Sensor
+    cv.GenerateID(): cv.declare_id(sensor.Sensor),
     cv.Optional(CONF_NAME): cv.string,
     cv.Optional(CONF_ICON): cv.icon,
     cv.Optional("unit_of_measurement"): cv.string,
@@ -36,7 +37,7 @@ SENSOR_SCHEMA = cv.Schema({
 
 # Binary sensor schema
 BINARY_SENSOR_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(binary_sensor.BinarySensor),  # Use binary_sensor.BinarySensor
+    cv.GenerateID(): cv.declare_id(binary_sensor.BinarySensor),
     cv.Optional(CONF_NAME): cv.string,
     cv.Optional(CONF_ICON): cv.icon,
     cv.Optional("device_class"): cv.string,
@@ -45,7 +46,7 @@ BINARY_SENSOR_SCHEMA = cv.Schema({
 
 # Text sensor schema
 TEXT_SENSOR_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(text_sensor.TextSensor),  # Use text_sensor.TextSensor
+    cv.GenerateID(): cv.declare_id(text_sensor.TextSensor),
     cv.Optional(CONF_NAME): cv.string,
     cv.Optional(CONF_ICON): cv.icon,
     cv.Optional("disabled_by_default", default=False): cv.boolean,
@@ -55,6 +56,7 @@ CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(DometicCfxWifi),
     cv.Required("host"): cv.string,
     cv.Optional("port", default=13142): cv.port,
+
     # Numeric sensors
     cv.Optional("comp0_temp"): SENSOR_SCHEMA.extend({
         cv.Optional("unit_of_measurement", default=UNIT_CELSIUS): cv.string,
@@ -82,8 +84,8 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional("comp0_hist_week_latest"): SENSOR_SCHEMA,
     cv.Optional("comp1_hist_week_latest"): SENSOR_SCHEMA,
     cv.Optional("dc_current_hist_hour_latest"): SENSOR_SCHEMA,
+
     # Binary sensors
-      # Binary sensors
     cv.Optional("comp0_door_open"): BINARY_SENSOR_SCHEMA.extend({
         cv.Optional("device_class", default=DEVICE_CLASS_DOOR): cv.string,
     }),
@@ -185,12 +187,19 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
-    # Numeric sensors
+    # If your C++ class exposes these, set them
+    if "host" in config:
+        cg.add(var.set_host(config["host"]))
+    if "port" in config:
+        cg.add(var.set_port(config["port"]))
+
+    # Numeric sensors — exactly those defined in the schema above
     for sensor_key in [
-        "cooler_temp_set", "comp0_temp_set", "comp1_temp_set",
-        "cooler_voltage", "cooler_current", "cooler_power",
-        "cooler_energy", "cooler_temp", "comp0_temp", "comp1_temp",
-        "comp0_fan_speed", "comp1_fan_speed"
+        "comp0_temp", "comp1_temp", "dc_voltage", "battery_protection_level",
+        "power_source", "compartment_count", "icemaker_count", "comp0_open_count",
+        "comp1_open_count", "presented_temp_unit", "comp0_hist_hour_latest",
+        "comp1_hist_hour_latest", "comp0_hist_day_latest", "comp1_hist_day_latest",
+        "comp0_hist_week_latest", "comp1_hist_week_latest", "dc_current_hist_hour_latest"
     ]:
         if sensor_key in config:
             sensor_conf = config[sensor_key]
@@ -206,9 +215,9 @@ async def to_code(config):
             await sensor.register_sensor(sensor_obj, sensor_conf)
             cg.add(getattr(var, f"set_{sensor_key}")(sensor_obj))
 
-    # Binary sensors
+    # Binary sensors — match schema
     for bs_key in [
-        "comp0_door_open", "comp1_door_open", "cooler_power_on",
+        "comp0_door_open", "comp1_door_open", "cooler_power",
         "comp0_power", "comp1_power", "wifi_mode", "bluetooth_mode",
         "wifi_ap_connected", "err_comm_alarm", "err_ntc_open_large",
         "err_ntc_short_large", "err_solenoid_valve", "err_ntc_open_small",
@@ -226,8 +235,17 @@ async def to_code(config):
             await binary_sensor.register_binary_sensor(bs_obj, bs_conf)
             cg.add(getattr(var, f"set_{bs_key}")(bs_obj))
 
-    # Text sensors
-    for ts_key in ["serial_number", "model_number", "firmware_version", "mac_address"]:
+    # Text sensors — match schema
+    for ts_key in [
+        "device_name", "product_serial", "comp0_recommended_range", "comp1_recommended_range",
+        "comp0_temp_range", "comp1_temp_range", "comp0_hist_hour_json", "comp1_hist_hour_json",
+        "comp0_hist_day_json", "comp1_hist_day_json", "comp0_hist_week_json", "comp1_hist_week_json",
+        "dc_current_hist_hour_json", "dc_current_hist_day_json", "dc_current_hist_week_json",
+        "station_ssid_0", "station_ssid_1", "station_ssid_2", "station_password_0",
+        "station_password_1", "station_password_2", "station_password_3", "station_password_4",
+        "cfx_direct_password_0", "cfx_direct_password_1", "cfx_direct_password_2",
+        "cfx_direct_password_3", "cfx_direct_password_4"
+    ]:
         if ts_key in config:
             ts_conf = config[ts_key]
             ts_obj = cg.new_Pvariable(ts_conf[CONF_ID])
@@ -235,4 +253,3 @@ async def to_code(config):
                 cg.add(ts_obj.set_icon(ts_conf[CONF_ICON]))
             await text_sensor.register_text_sensor(ts_obj, ts_conf)
             cg.add(getattr(var, f"set_{ts_key}")(ts_obj))
-
