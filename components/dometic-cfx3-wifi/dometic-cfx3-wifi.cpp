@@ -531,6 +531,17 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
     std::vector<int> val;
     for (size_t i=6; i<arr.size(); ++i) val.push_back(arr[i] & 0xFF);
 
+
+    // Debug: Log val
+    std::string val_log = "val=[";
+    for (size_t i = 0; i < val.size(); ++i) {
+      val_log += std::to_string(val[i]);
+      if (i + 1 < val.size()) val_log += ",";
+    }
+    val_log += "]";
+    ESP_LOGD(TAG, "Value bytes: %s", val_log.c_str());
+    // eof
+
     auto topic_is = [&](int ta,int tb,int tc,int td){ return ta==a && tb==b && tc==c && td==d; };
     auto decode_bool = [&]()->bool { return !val.empty() && (val[0] != 0); };
     auto decode_int8  = [&]()->float { return val.empty()?NAN:(float)(int8_t)val[0]; };
