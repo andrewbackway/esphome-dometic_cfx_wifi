@@ -87,7 +87,7 @@ For detailed configuration, refer to the `example.yaml` file in this repository.
 
 ## Troubleshooting
 
-- **Connection Issues**: Ensure the ESP device is properly connected to the Dometic CFX3 and that the WiFi credentials are correct.
+- **Connection Issues**: Ensure the ESP device is properly connected to the same WiFi network as the Dometic CFX3 and that the WiFi credentials are correct.
 - **Home Assistant Not Detecting**: Verify that the ESPHome integration is enabled and that the API is correctly configured in the YAML file.
 - **Firmware Upload Fails**: Check the ESP board type and USB connection. Use the ESPHome logs for detailed error messages.
 
