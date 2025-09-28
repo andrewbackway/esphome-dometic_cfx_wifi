@@ -80,7 +80,7 @@ dometic-cfx3-wifi:
 For detailed configuration, refer to the `example.yaml` file in this repository.
 
 ## Usage
-
+- Ensure you have the Dometic CFX3 connected to the same WiFi network as your ESP device (you can configure wifi via the Dometic Mobile Cooling App).
 - Once the ESP device is running, it will connect to the configured WiFi network and communicate with the Dometic CFX3.
 - Use Home Assistant or another MQTT-compatible platform to monitor temperature, power status, door state.
 - Check the ESPHome logs for debugging or connection issues.
