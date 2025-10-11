@@ -93,5 +93,5 @@ class DometicCFXComponent : public Component {
   void publish_text_(text_sensor::TextSensor *t, const std::string &v);
 };
 
-}  // namespace cfx3
+}  // namespace cfx
 }  // namespace esphome

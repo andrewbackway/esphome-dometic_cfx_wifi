@@ -18,77 +18,65 @@ esp32:
   framework:
     type: esp-idf
 
-    name: "Compartment 1 Temperature"
+wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
 
 external_components:
-  - source: github://andrewbackway/esphome-dometic-cfx3-wifi
+  - source: github://andrewbackway/esphome-dometic-cfx-wifi
 
-    icon: "mdi:thermometer"
+dometic_cfx_wifi:
   - id: fridge1
-    host: 10.1.0.55
-  - id: fridge2
-    host: 10.1.0.56
+    host: 10.1.0.198
 
-  dc_voltage:
+sensor:
   - platform: dometic_cfx_wifi
     dometic_cfx_wifi_id: fridge1
     type: COMPARTMENT_0_MEASURED_TEMPERATURE
     name: "Fridge 1 Temp"
     icon: "mdi:thermometer"
   - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge2
-    type: COMPARTMENT_0_MEASURED_TEMPERATURE
+    dometic_cfx_wifi_id: fridge1
+    type: COMPARTMENT_0_SET_TEMPERATURE
+    name: "Fridge 1 Target Temp"
+    icon: "mdi:thermometer"
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge1
+    type: COMPARTMENT_1_MEASURED_TEMPERATURE
     name: "Fridge 2 Temp"
     icon: "mdi:thermometer"
   - platform: dometic_cfx_wifi
     dometic_cfx_wifi_id: fridge1
+    type: COMPARTMENT_1_SET_TEMPERATURE
+    name: "Fridge 2 Target Temp"
+    icon: "mdi:thermometer"
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge1
     type: DC_VOLTAGE
-    name: "Fridge 1 DC Voltage"
+    name: "Fridge DC Voltage"
     icon: "mdi:flash"
 
-    name: "DC Voltage"
+binary_sensor:
   - platform: dometic_cfx_wifi
     dometic_cfx_wifi_id: fridge1
     type: COMPARTMENT_0_DOOR_OPEN
     name: "Fridge 1 Door"
     icon: "mdi:door"
   - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge2
-    type: COMPARTMENT_0_DOOR_OPEN
+    dometic_cfx_wifi_id: fridge1
+    type: COMPARTMENT_1_DOOR_OPEN
     name: "Fridge 2 Door"
     icon: "mdi:door"
 
 text_sensor:
   - platform: dometic_cfx_wifi
     dometic_cfx_wifi_id: fridge1
-    type: PRODUCT_SERIAL_NUMBER
-    name: "Fridge 1 Serial"
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge2
-    type: PRODUCT_SERIAL_NUMBER
-    name: "Fridge 2 Serial"
+    type: DEVICE_NAME
+    name: "Fridge 1 Name"
 ```
 
 For detailed configuration, refer to the `example.yaml` file in this repository.
-    icon: "mdi:flash"
-  comp0_door_open:
-    name: "Compartment 0 Door"
-    icon: "mdi:door"
-  comp1_door_open:
-    name: "Compartment 1 Door"
-    icon: "mdi:door"
-  device_name:
-    name: "Device Name"
-  product_serial:
-    name: "Product Serial"
-  comp0_power:
-    name: "Compresser 1 Power"
-  comp1_power:
-    name: "Compresser 2 Power"
-  cooler_power:
-    name: "Power"
+
 ```
 
 For detailed configuration, refer to the `example.yaml` file in this repository.

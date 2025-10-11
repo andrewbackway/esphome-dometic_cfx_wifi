@@ -1,4 +1,4 @@
-#include "dometic_cfx3_wifi.h"
+#include "dometic_cfx_wifi.h"
 #include "esphome.h"
 #include "esphome/core/hal.h"
 #include "esphome/components/json/json_util.h"  // ArduinoJson wrapper
@@ -19,7 +19,7 @@ extern "C" {
 namespace esphome {
 namespace dometic_cfx {
 
-static const char *const TAG = "dometic_cfx3";
+static const char *const TAG = "dometic_cfx";
 
 // === Wire protocol opcodes (from exporter) ===
 enum DdmActions { PUBLISH=0, SUBSCRIBE=1, PING=2, HELLO=3, ACK=4, NAK=5, NOP=6 };
