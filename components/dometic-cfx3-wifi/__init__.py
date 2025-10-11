@@ -69,6 +69,14 @@ CONFIG_SCHEMA = cv.Schema({
         cv.Optional("unit_of_measurement", default=UNIT_CELSIUS): cv.string,
         cv.Optional("device_class", default=DEVICE_CLASS_TEMPERATURE): cv.string,
     }),
+    cv.Optional("comp0_set_temp"): SENSOR_SCHEMA.extend({
+        cv.Optional("unit_of_measurement", default=UNIT_CELSIUS): cv.string,
+        cv.Optional("device_class", default=DEVICE_CLASS_TEMPERATURE): cv.string,
+    }),
+    cv.Optional("comp1_set_temp"): SENSOR_SCHEMA.extend({
+        cv.Optional("unit_of_measurement", default=UNIT_CELSIUS): cv.string,
+        cv.Optional("device_class", default=DEVICE_CLASS_TEMPERATURE): cv.string,
+    }),
     cv.Optional("dc_voltage"): SENSOR_SCHEMA.extend({
         cv.Optional("unit_of_measurement", default=UNIT_VOLT): cv.string,
         cv.Optional("device_class", default=DEVICE_CLASS_VOLTAGE): cv.string,
