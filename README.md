@@ -1,30 +1,12 @@
 # ESPHome Dometic CFX3 WiFi Integration
 
-## Overview
-
-This repository contains an ESPHome configuration for integrating Dometic CFX3 portable fridge/freezers with WiFi functionality. It enables remote monitoring of the fridge using Home Assistant or other platforms compatible with ESPHome.
-
-## Features
-
-- **WiFi Connectivity**: Connects the Dometic CFX3 to a WiFi network for remote access.
-- **Temperature Monitoring**: Reads and reports the internal temperature of the fridge.
-- **Home Assistant Integration**: Seamlessly integrates with Home Assistant for automation and monitoring.
 - **Customizable Configuration**: Uses ESPHome's YAML configuration for easy customization.
-
-## Requirements
-
-- **Hardware**:
   - ESP32 or ESP8266 microcontroller (e.g., NodeMCU, Wemos D1 Mini).
-  - Dometic CFX3 fridge/freezer with fridge configured in WiFi mode and connected to same wireless network as ESPHome device (configured via Mobile Cooling App)
-- **Software**:
-  - [ESPHome](https://esphome.io/) installed and configured.
-  - [Home Assistant](https://www.home-assistant.io/) (optional, for integration).
-  - A working WiFi network.
-
+```yaml
 
 ## Configuration Example
 
-Below is a sample snippet of the ESPHome YAML configuration:
+Below is a sample snippet of the new ESPHome YAML configuration (multiple fridges supported):
 
 ```yaml
 esphome:
@@ -36,28 +18,60 @@ esp32:
   framework:
     type: esp-idf
 
-wifi:
-  ssid: !secret wifi_ssid 
+    name: "Compartment 1 Temperature"
+  ssid: !secret wifi_ssid
   password: !secret wifi_password
 
 external_components:
- - source: github://andrewbackway/esphome-dometic-cfx3-wifi
+  - source: github://andrewbackway/esphome-dometic-cfx3-wifi
 
-web_server:
-  version: 3
-
-api:
-
-dometic-cfx3-wifi:
-  host: <<IP OF FRIDGE>>
-  comp0_temp:
-    name: "Compartment 0 Temperature"
     icon: "mdi:thermometer"
-  comp1_temp:
-    name: "Compartment 1 Temperature"
-    icon: "mdi:thermometer"
+  - id: fridge1
+    host: 10.1.0.55
+  - id: fridge2
+    host: 10.1.0.56
+
   dc_voltage:
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge1
+    type: COMPARTMENT_0_MEASURED_TEMPERATURE
+    name: "Fridge 1 Temp"
+    icon: "mdi:thermometer"
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge2
+    type: COMPARTMENT_0_MEASURED_TEMPERATURE
+    name: "Fridge 2 Temp"
+    icon: "mdi:thermometer"
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge1
+    type: DC_VOLTAGE
+    name: "Fridge 1 DC Voltage"
+    icon: "mdi:flash"
+
     name: "DC Voltage"
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge1
+    type: COMPARTMENT_0_DOOR_OPEN
+    name: "Fridge 1 Door"
+    icon: "mdi:door"
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge2
+    type: COMPARTMENT_0_DOOR_OPEN
+    name: "Fridge 2 Door"
+    icon: "mdi:door"
+
+text_sensor:
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge1
+    type: PRODUCT_SERIAL_NUMBER
+    name: "Fridge 1 Serial"
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge2
+    type: PRODUCT_SERIAL_NUMBER
+    name: "Fridge 2 Serial"
+```
+
+For detailed configuration, refer to the `example.yaml` file in this repository.
     icon: "mdi:flash"
   comp0_door_open:
     name: "Compartment 0 Door"

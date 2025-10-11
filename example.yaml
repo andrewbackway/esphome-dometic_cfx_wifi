@@ -10,35 +10,57 @@ esp32:
     type: esp-idf
 
 external_components:
- - source: github://andrewbackway/esphome-dometic-cfx3-wifi
-   refresh: 1s
+  - source: github://andrewbackway/esphome-dometic-cfx3-wifi
+    refresh: 1s
 
-# Allow Over-The-Air updates
 ota:
-- platform: esphome
+  - platform: esphome
 
 wifi:
   ssid: TODO
   password: TODO
 
-dometic-cfx3-wifi:
-  host: "10.1.0.55"
-  comp0_temp:
-    name: "Compartment 0 Temperature"
+dometic_cfx_wifi:
+  - id: fridge1
+    host: 10.1.0.55
+  - id: fridge2
+    host: 10.1.0.56
+
+sensor:
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge1
+    type: COMPARTMENT_0_MEASURED_TEMPERATURE
+    name: "Fridge 1 Temp"
     icon: "mdi:thermometer"
-  comp1_temp:
-    name: "Compartment 1 Temperature"
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge2
+    type: COMPARTMENT_0_MEASURED_TEMPERATURE
+    name: "Fridge 2 Temp"
     icon: "mdi:thermometer"
-  dc_voltage:
-    name: "DC Voltage"
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge1
+    type: DC_VOLTAGE
+    name: "Fridge 1 DC Voltage"
     icon: "mdi:flash"
-  comp0_door_open:
-    name: "Compartment 0 Door"
+
+binary_sensor:
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge1
+    type: COMPARTMENT_0_DOOR_OPEN
+    name: "Fridge 1 Door"
     icon: "mdi:door"
-  comp1_door_open:
-    name: "Compartment 1 Door"
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge2
+    type: COMPARTMENT_0_DOOR_OPEN
+    name: "Fridge 2 Door"
     icon: "mdi:door"
-  device_name:
-    name: "Device Name"
-  product_serial:
-    name: "Product Serial"
+
+text_sensor:
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge1
+    type: PRODUCT_SERIAL_NUMBER
+    name: "Fridge 1 Serial"
+  - platform: dometic_cfx_wifi
+    dometic_cfx_wifi_id: fridge2
+    type: PRODUCT_SERIAL_NUMBER
+    name: "Fridge 2 Serial"
