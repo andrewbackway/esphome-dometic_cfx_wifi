@@ -10,61 +10,35 @@ esp32:
     type: esp-idf
 
 external_components:
-  - source: github://andrewbackway/esphome-dometic-cfx-wifi
-    refresh: 1s
+ - source: github://andrewbackway/esphome-dometic-cfx3-wifi
+   refresh: 1s
 
+# Allow Over-The-Air updates
 ota:
-  - platform: esphome
+- platform: esphome
 
 wifi:
-  ssid: !secrets wifi_ssid
-  password: !secrets wifi_password
-  
-dometic_cfx_wifi:
-  - id: fridge1
-    host: 10.1.0.198
+  ssid: TODO
+  password: TODO
 
-sensor:
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: COMPARTMENT_0_MEASURED_TEMPERATURE
-    name: "Fridge 1 Temp"
+dometic-cfx3-wifi:
+  host: "10.1.0.55"
+  comp0_temp:
+    name: "Compartment 0 Temperature"
     icon: "mdi:thermometer"
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: COMPARTMENT_0_SET_TEMPERATURE
-    name: "Fridge 1 Target Temp"
+  comp1_temp:
+    name: "Compartment 1 Temperature"
     icon: "mdi:thermometer"
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: COMPARTMENT_1_MEASURED_TEMPERATURE
-    name: "Fridge 2 Temp"
-    icon: "mdi:thermometer"
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: COMPARTMENT_1_SET_TEMPERATURE
-    name: "Fridge 2 Target Temp"
-    icon: "mdi:thermometer"
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: DC_VOLTAGE
-    name: "Fridge DC Voltage"
+  dc_voltage:
+    name: "DC Voltage"
     icon: "mdi:flash"
-
-binary_sensor:
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: COMPARTMENT_0_DOOR_OPEN
-    name: "Fridge 1 Door"
+  comp0_door_open:
+    name: "Compartment 0 Door"
     icon: "mdi:door"
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: COMPARTMENT_1_DOOR_OPEN
-    name: "Fridge 2 Door"
+  comp1_door_open:
+    name: "Compartment 1 Door"
     icon: "mdi:door"
-
-text_sensor:
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: DEVICE_NAME
-    name: "Fridge 1 Name"
+  device_name:
+    name: "Device Name"
+  product_serial:
+    name: "Product Serial"

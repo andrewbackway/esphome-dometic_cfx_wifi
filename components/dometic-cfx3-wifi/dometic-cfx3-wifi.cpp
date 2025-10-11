@@ -1,4 +1,4 @@
-#include "dometic_cfx_wifi.h"
+#include "dometic-cfx3-wifi.h"
 #include "esphome.h"
 #include "esphome/core/hal.h"
 #include "esphome/components/json/json_util.h"  // ArduinoJson wrapper
@@ -19,7 +19,7 @@ extern "C" {
 namespace esphome {
 namespace dometic_cfx {
 
-static const char *const TAG = "dometic_cfx";
+static const char *const TAG = "dometic-cfx3";
 
 // === Wire protocol opcodes (from exporter) ===
 enum DdmActions { PUBLISH=0, SUBSCRIBE=1, PING=2, HELLO=3, ACK=4, NAK=5, NOP=6 };
@@ -146,24 +146,6 @@ void DometicCFXComponent::setup() {
       &this->socket_task_handle_,
       1                           // core 1 helps keep Wi-Fi on core 0
     );
-      // ...existing code...
-
-      // Helper: get sensor by topic name
-      sensor::Sensor *DometicCFXComponent::get_sensor(const std::string &topic) {
-        auto it = sensors_.find(topic);
-        if (it != sensors_.end()) return it->second;
-        return nullptr;
-      }
-      binary_sensor::BinarySensor *DometicCFXComponent::get_binary_sensor(const std::string &topic) {
-        auto it = binary_sensors_.find(topic);
-        if (it != binary_sensors_.end()) return it->second;
-        return nullptr;
-      }
-      text_sensor::TextSensor *DometicCFXComponent::get_text_sensor(const std::string &topic) {
-        auto it = text_sensors_.find(topic);
-        if (it != text_sensors_.end()) return it->second;
-        return nullptr;
-      }
   }
 }
 
