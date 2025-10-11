@@ -10,7 +10,7 @@ esp32:
     type: esp-idf
 
 external_components:
- - source: github://andrewbackway/esphome-dometic-cfx3-wifi
+ - source: github://andrewbackway/esphome-dometic_cfx3_wifi
    refresh: 1s
 
 # Allow Over-The-Air updates

@@ -41,7 +41,7 @@ wifi:
   password: !secret wifi_password
 
 external_components:
- - source: github://andrewbackway/esphome-dometic-cfx3-wifi
+ - source: github://andrewbackway/esphome-dometic_cfx3_wifi
 
 web_server:
   version: 3
