@@ -3,7 +3,7 @@
 
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.const import CONF_ID, CONF_HOST, CONF_PORT, CONF_ICON, CONF_NAME
+from esphome.const import CONF_ID, "host", "port", CONF_ICON, CONF_NAME
 
 from esphome.components import sensor, binary_sensor, text_sensor
 
@@ -98,8 +98,8 @@ CONF_DOMETIC_CFX_WIFI_ID = "dometic_cfx_wifi_id"
 # Main component schema
 DOMETIC_CFX_WIFI_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(DometicCfxWifi),
-    cv.Required(CONF_HOST): cv.string,
-    cv.Optional(CONF_PORT, default=13142): cv.port,
+    cv.Required("host"): cv.string,
+    cv.Optional("port", default=13142): cv.port,
 })
 
 CONFIG_SCHEMA = cv.Schema({
@@ -110,5 +110,5 @@ async def to_code(config):
     for conf in config["dometic_cfx_wifi"]:
         var = cg.new_Pvariable(conf[CONF_ID])
         await cg.register_component(var, conf)
-        cg.add(var.set_host(conf[CONF_HOST]))
-        cg.add(var.set_port(conf.get(CONF_PORT, 13142)))
+        cg.add(var.set_host(conf["host"]))
+        cg.add(var.set_port(conf.get("port", 13142)))
