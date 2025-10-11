@@ -1,21 +1,30 @@
 # ESPHome Dometic CFX3 WiFi Integration
 
+## Overview
+
+This repository contains an ESPHome configuration for integrating Dometic CFX3 portable fridge/freezers with WiFi functionality. It enables remote monitoring of the fridge using Home Assistant or other platforms compatible with ESPHome.
+
+## Features
+
+- **WiFi Connectivity**: Connects the Dometic CFX3 to a WiFi network for remote access.
+- **Temperature Monitoring**: Reads and reports the internal temperature of the fridge.
+- **Home Assistant Integration**: Seamlessly integrates with Home Assistant for automation and monitoring.
 - **Customizable Configuration**: Uses ESPHome's YAML configuration for easy customization.
+
+## Requirements
+
+- **Hardware**:
   - ESP32 or ESP8266 microcontroller (e.g., NodeMCU, Wemos D1 Mini).
-<<<<<<< HEAD
-```yaml
-=======
   - Dometic CFX3 fridge/freezer with fridge configured in WiFi mode and connected to same wireless network as ESPHome device (configured via Mobile Cooling App)
 - **Software**:
   - [ESPHome](https://esphome.io/) installed and configured.
   - [Home Assistant](https://www.home-assistant.io/) (optional, for integration).
   - A working WiFi network.
 
->>>>>>> 32532f5 (a)
 
 ## Configuration Example
 
-Below is a sample snippet of the new ESPHome YAML configuration (multiple fridges supported):
+Below is a sample snippet of the ESPHome YAML configuration:
 
 ```yaml
 esphome:
@@ -28,64 +37,44 @@ esp32:
     type: esp-idf
 
 wifi:
-  ssid: !secret wifi_ssid
+  ssid: !secret wifi_ssid 
   password: !secret wifi_password
 
 external_components:
-  - source: github://andrewbackway/esphome-dometic-cfx-wifi
+ - source: github://andrewbackway/esphome-dometic-cfx3-wifi
 
-dometic_cfx_wifi:
-  - id: fridge1
-    host: 10.1.0.198
+web_server:
+  version: 3
 
-sensor:
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: COMPARTMENT_0_MEASURED_TEMPERATURE
-    name: "Fridge 1 Temp"
+api:
+
+dometic-cfx3-wifi:
+  host: <<IP OF FRIDGE>>
+  comp0_temp:
+    name: "Compartment 0 Temperature"
     icon: "mdi:thermometer"
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: COMPARTMENT_0_SET_TEMPERATURE
-    name: "Fridge 1 Target Temp"
+  comp1_temp:
+    name: "Compartment 1 Temperature"
     icon: "mdi:thermometer"
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: COMPARTMENT_1_MEASURED_TEMPERATURE
-    name: "Fridge 2 Temp"
-    icon: "mdi:thermometer"
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: COMPARTMENT_1_SET_TEMPERATURE
-    name: "Fridge 2 Target Temp"
-    icon: "mdi:thermometer"
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: DC_VOLTAGE
-    name: "Fridge DC Voltage"
+  dc_voltage:
+    name: "DC Voltage"
     icon: "mdi:flash"
-
-binary_sensor:
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: COMPARTMENT_0_DOOR_OPEN
-    name: "Fridge 1 Door"
+  comp0_door_open:
+    name: "Compartment 0 Door"
     icon: "mdi:door"
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: COMPARTMENT_1_DOOR_OPEN
-    name: "Fridge 2 Door"
+  comp1_door_open:
+    name: "Compartment 1 Door"
     icon: "mdi:door"
-
-text_sensor:
-  - platform: dometic_cfx_wifi
-    dometic_cfx_wifi_id: fridge1
-    type: DEVICE_NAME
-    name: "Fridge 1 Name"
-```
-
-For detailed configuration, refer to the `example.yaml` file in this repository.
-
+  device_name:
+    name: "Device Name"
+  product_serial:
+    name: "Product Serial"
+  comp0_power:
+    name: "Compresser 1 Power"
+  comp1_power:
+    name: "Compresser 2 Power"
+  cooler_power:
+    name: "Power"
 ```
 
 For detailed configuration, refer to the `example.yaml` file in this repository.
@@ -98,7 +87,7 @@ For detailed configuration, refer to the `example.yaml` file in this repository.
 
 ## Troubleshooting
 
-- **Connection Issues**: Ensure the ESP device is properly connected to the Dometic CFX3 and that the WiFi credentials are correct.
+- **Connection Issues**: Ensure the ESP device is properly connected to the same WiFi network as the Dometic CFX3 and that the WiFi credentials are correct.
 - **Home Assistant Not Detecting**: Verify that the ESPHome integration is enabled and that the API is correctly configured in the YAML file.
 - **Firmware Upload Fails**: Check the ESP board type and USB connection. Use the ESPHome logs for detailed error messages.
 
