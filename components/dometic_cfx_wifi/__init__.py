@@ -1,21 +1,19 @@
+# __init__.py
+# Main component for dometic_cfx_wifi
 
-# New-style ESPHome external component config for dometic_cfx_wifi
 import esphome.codegen as cg
 import esphome.config_validation as cv
+from esphome.const import CONF_ID, CONF_HOST, CONF_PORT, CONF_ICON, CONF_NAME
+
 from esphome.components import sensor, binary_sensor, text_sensor
-from esphome.const import (
-    CONF_ID,
-    CONF_NAME,
-    CONF_ICON,
-)
 
 DEPENDENCIES = ["network", "json"]
-AUTO_LOAD = ["network", "json"]
+AUTO_LOAD = ["sensor", "binary_sensor", "text_sensor"]
 
-dometic_cfx_wifi_ns = cg.esphome_ns.namespace("dometic_cfx")
-DometicCfxWifi = dometic_cfx_wifi_ns.class_("DometicCFXComponent", cg.Component)
+dometic_cfx_wifi_ns = cg.esphome_ns.namespace("dometic_cfx_wifi")
+DometicCfxWifi = dometic_cfx_wifi_ns.class_("DometicCfxWifi", cg.Component)
 
-# List of valid topic names (should match C++ TOPICS array)
+# List of valid topic names (shared across platforms)
 TOPICS = [
     "COMPARTMENT_0_MEASURED_TEMPERATURE",
     "COMPARTMENT_1_MEASURED_TEMPERATURE",
@@ -89,79 +87,28 @@ TOPICS = [
     "ALERT_VOLTAGE"
 ]
 
-# dometic_cfx_wifi component config (host, id)
-DOMETIC_CFX_WIFI_COMPONENT_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(DometicCfxWifi),
-    cv.Required("host"): cv.string,
-    cv.Optional("port", default=13142): cv.port,
-})
-
-CONFIG_SCHEMA = cv.Schema({
-    cv.Required("dometic_cfx_wifi"): cv.ensure_list(DOMETIC_CFX_WIFI_COMPONENT_SCHEMA),
-})
-
-# Platform schemas for sensor, binary_sensor, text_sensor
 def validate_topic(value):
     value = cv.string_strict(value)
     if value not in TOPICS:
-        raise cv.Invalid(f"type '{value}' is not a valid dometic_cfx_wifi topic. Valid: {TOPICS}")
+        raise cv.Invalid(f"type '{value}' is not a valid dometic_cfx_wifi topic. Valid topics: {', '.join(TOPICS)}")
     return value
 
-def get_component_id(value):
-    return cv.use_id(DometicCfxWifi)(value)
+CONF_DOMETIC_CFX_WIFI_ID = "dometic_cfx_wifi_id"
 
-SENSOR_PLATFORM_SCHEMA = sensor.sensor_schema(
-    DometicCfxWifi
-).extend({
-    cv.Required("dometic_cfx_wifi_id"): cv.use_id(DometicCfxWifi),
-    cv.Required("type"): validate_topic,
-    cv.Optional(CONF_NAME): cv.string,
-    cv.Optional(CONF_ICON): cv.icon,
+# Main component schema
+DOMETIC_CFX_WIFI_SCHEMA = cv.Schema({
+    cv.GenerateID(): cv.declare_id(DometicCfxWifi),
+    cv.Required(CONF_HOST): cv.string,
+    cv.Optional(CONF_PORT, default=13142): cv.port,
 })
 
-BINARY_SENSOR_PLATFORM_SCHEMA = binary_sensor.binary_sensor_schema(
-    DometicCfxWifi
-).extend({
-    cv.Required("dometic_cfx_wifi_id"): cv.use_id(DometicCfxWifi),
-    cv.Required("type"): validate_topic,
-    cv.Optional(CONF_NAME): cv.string,
-    cv.Optional(CONF_ICON): cv.icon,
-})
-
-TEXT_SENSOR_PLATFORM_SCHEMA = text_sensor.text_sensor_schema(
-    DometicCfxWifi
-).extend({
-    cv.Required("dometic_cfx_wifi_id"): cv.use_id(DometicCfxWifi),
-    cv.Required("type"): validate_topic,
-    cv.Optional(CONF_NAME): cv.string,
-    cv.Optional(CONF_ICON): cv.icon,
+CONFIG_SCHEMA = cv.Schema({
+    cv.Required("dometic_cfx_wifi"): cv.ensure_list(DOMETIC_CFX_WIFI_SCHEMA),
 })
 
 async def to_code(config):
-    # Register all dometic_cfx_wifi components
-    for comp in config["dometic_cfx_wifi"]:
-        var = cg.new_Pvariable(comp[CONF_ID])
-        await cg.register_component(var, comp)
-        cg.add(var.set_host(comp["host"]))
-        cg.add(var.set_port(comp.get("port", 13142)))
-
-# Sensor platform
-@sensor.register_platform("dometic_cfx_wifi", SENSOR_PLATFORM_SCHEMA)
-async def sensor_to_code(config):
-    paren = await cg.get_variable(config["dometic_cfx_wifi_id"])
-    var = await sensor.new_sensor(config)
-    cg.add(paren.register_sensor(config["type"], var))
-
-# Binary sensor platform
-@binary_sensor.register_platform("dometic_cfx_wifi", BINARY_SENSOR_PLATFORM_SCHEMA)
-async def binary_sensor_to_code(config):
-    paren = await cg.get_variable(config["dometic_cfx_wifi_id"])
-    var = await binary_sensor.new_binary_sensor(config)
-    cg.add(paren.register_binary_sensor(config["type"], var))
-
-# Text sensor platform
-@text_sensor.register_platform("dometic_cfx_wifi", TEXT_SENSOR_PLATFORM_SCHEMA)
-async def text_sensor_to_code(config):
-    paren = await cg.get_variable(config["dometic_cfx_wifi_id"])
-    var = await text_sensor.new_text_sensor(config)
-    cg.add(paren.register_text_sensor(config["type"], var))
+    for conf in config["dometic_cfx_wifi"]:
+        var = cg.new_Pvariable(conf[CONF_ID])
+        await cg.register_component(var, conf)
+        cg.add(var.set_host(conf[CONF_HOST]))
+        cg.add(var.set_port(conf.get(CONF_PORT, 13142)))
