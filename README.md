@@ -50,31 +50,35 @@ api:
 
 dometic-cfx3-wifi:
   host: <<IP OF FRIDGE>>
+   cooler_power:
+    name: "CFX Power"
+  device_name:
+    name: "CFX Device Name"
+  dc_voltage:
+    name: "CFX DC Voltage"
+    icon: "mdi:flash"
   comp0_temp:
-    name: "Compartment 0 Temperature"
+    name: "CFX Compartment 1 Temp"
     icon: "mdi:thermometer"
   comp1_temp:
-    name: "Compartment 1 Temperature"
+    name: "CFX Compartment 2 Temp"
     icon: "mdi:thermometer"
-  dc_voltage:
-    name: "DC Voltage"
-    icon: "mdi:flash"
+  comp0_set_temp:
+    name: "CFX Compartment 1 Target Temp"
+    icon: "mdi:thermometer"
+  comp1_set_temp:
+    name: "CFX Compartment 2 Target Temp"
+    icon: "mdi:thermometer"
   comp0_door_open:
-    name: "Compartment 0 Door"
+    name: "CFX Compartment 1 Door"
     icon: "mdi:door"
   comp1_door_open:
-    name: "Compartment 1 Door"
+    name: "CFX Compartment 2 Door"
     icon: "mdi:door"
-  device_name:
-    name: "Device Name"
-  product_serial:
-    name: "Product Serial"
   comp0_power:
-    name: "Compresser 1 Power"
+    name: "CFX Compartment 1 Power"
   comp1_power:
-    name: "Compresser 2 Power"
-  cooler_power:
-    name: "Power"
+    name: "CFX Compartment 2 Power"
 ```
 
 For detailed configuration, refer to the `example.yaml` file in this repository.
