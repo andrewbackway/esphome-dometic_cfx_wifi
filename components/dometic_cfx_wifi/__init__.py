@@ -3,7 +3,7 @@
 
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.const import CONF_ID, "host", "port", CONF_ICON, CONF_NAME
+from esphome.const import CONF_ID, CONF_ICON, CONF_NAME
 
 from esphome.components import sensor, binary_sensor, text_sensor
 
