@@ -372,6 +372,8 @@ void DometicCFXComponent::close_() {
     this->sock_ = -1;
   }
   this->rxbuf_.clear();
+
+  this->set_all_sensors_undefined_();
 }
 
 bool DometicCFXComponent::send_json_(const std::string &json) {
@@ -629,6 +631,86 @@ bool DometicCFXComponent::handle_payload_(const std::string &line) {
 
   return true;
 }
+
+void DometicCFXComponent::set_all_sensors_undefined_() {
+  ESP_LOGW(TAG, "Setting all sensors to undefined (connection lost)");
+
+  // Float sensors → publish NAN
+  auto reset_float = [&](sensor::Sensor *s) {
+    if (s) s->publish_state(NAN);
+  };
+
+  // Binary sensors → publish no state (esphome treats this as unknown)
+  auto reset_binary = [&](binary_sensor::BinarySensor *b) {
+    if (b) b->publish_state(false);  // or remove this if you prefer "unknown"
+  };
+
+  // Text sensors → empty
+  auto reset_text = [&](text_sensor::TextSensor *t) {
+    if (t) t->publish_state("");
+  };
+
+  // === Float Sensors ===
+  reset_float(comp0_temp);
+  reset_float(comp1_temp);
+  reset_float(comp0_set_temp);
+  reset_float(comp1_set_temp);
+  reset_float(dc_voltage);
+  reset_float(battery_protection_level);
+  reset_float(power_source);
+  reset_float(compartment_count);
+  reset_float(icemaker_count);
+  reset_float(comp0_hist_hour_latest);
+  reset_float(comp1_hist_hour_latest);
+  reset_float(dc_current_hist_hour_latest);
+
+  // === Binary Sensors ===
+  reset_binary(cooler_power);
+  reset_binary(comp0_power);
+  reset_binary(comp1_power);
+  reset_binary(comp0_door_open);
+  reset_binary(comp1_door_open);
+  reset_binary(icemaker_power);
+  reset_binary(wifi_mode);
+  reset_binary(bluetooth_mode);
+  reset_binary(wifi_ap_connected);
+
+  reset_binary(err_comm_alarm);
+  reset_binary(err_ntc_open_large);
+  reset_binary(err_ntc_short_large);
+  reset_binary(err_solenoid_valve);
+  reset_binary(err_ntc_open_small);
+  reset_binary(err_ntc_short_small);
+  reset_binary(err_fan_overvoltage);
+  reset_binary(err_compressor_start_fail);
+  reset_binary(err_compressor_speed);
+  reset_binary(err_controller_overtemp);
+
+  reset_binary(alert_temp_dcm);
+  reset_binary(alert_temp_cc);
+  reset_binary(alert_door);
+  reset_binary(alert_voltage);
+
+  // === Text Sensors ===
+  reset_text(product_serial);
+  reset_text(device_name);
+  reset_text(comp0_recommended_range);
+  reset_text(comp1_recommended_range);
+  reset_text(comp0_temp_range);
+  reset_text(comp1_temp_range);
+
+  reset_text(comp0_hist_hour_json);
+  reset_text(comp1_hist_hour_json);
+  reset_text(comp0_hist_day_json);
+  reset_text(comp1_hist_day_json);
+  reset_text(comp0_hist_week_json);
+  reset_text(comp1_hist_week_json);
+  reset_text(dc_current_hist_hour_json);
+  reset_text(dc_current_hist_day_json);
+  reset_text(dc_current_hist_week_json);
+}
+
+
 // === Float sensors ===
 void DometicCFXComponent::set_comp0_temp(sensor::Sensor *sensor) { comp0_temp = sensor; }
 void DometicCFXComponent::set_comp1_temp(sensor::Sensor *sensor) { comp1_temp = sensor; }

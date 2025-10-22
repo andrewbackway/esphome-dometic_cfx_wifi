@@ -2,7 +2,6 @@ esphome:
   name: esphome-web-cfx3
   friendly_name: ESPHome Dometic CFX3 WiFi
   min_version: 2025.5.0
-  name_add_mac_suffix: false
 
 esp32:
   board: esp32dev
@@ -18,8 +17,8 @@ ota:
 - platform: esphome
 
 wifi:
-  ssid: TODO
-  password: TODO
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
 
 dometic-cfx3-wifi:
   host: "10.1.0.55"
