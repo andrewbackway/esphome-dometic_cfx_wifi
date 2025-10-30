@@ -108,6 +108,7 @@ class DometicCFXComponent : public Component {
   std::string host_;
   uint16_t port_{13142};
 
+  void set_all_sensors_undefined_();
   
   // === Sensors (floats) ===
   // Compartment temps & setpoints
