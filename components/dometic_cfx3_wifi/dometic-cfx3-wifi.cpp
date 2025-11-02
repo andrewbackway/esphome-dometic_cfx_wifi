@@ -223,7 +223,7 @@ void DometicCFXComponent::socket_task_() {
 // Called only from socket task context
 bool DometicCFXComponent::connect_task_() {
   ESP_LOGI(TAG, "Connecting to %s:%u", host_.c_str(), (unsigned)port_);
-  this->close_();
+  //this->close_();
 
   ESP_LOGI(TAG, "Preparing Socket");
 
