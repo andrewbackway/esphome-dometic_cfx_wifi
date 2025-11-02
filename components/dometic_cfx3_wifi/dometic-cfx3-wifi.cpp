@@ -222,23 +222,8 @@ void DometicCFXComponent::socket_task_() {
 
 // Called only from socket task context
 bool DometicCFXComponent::connect_task_() {
-  ESP_LOGI(TAG, "Testing ping to gateway 10.0.1.1");
-  // Use esp_ping or manual: but for quick, try socket to router on port 80 if
-  // it has HTTP.
-  int test_sock = ::socket(AF_INET, SOCK_STREAM, 0);
-  sockaddr_in test_addr{};
-  test_addr.sin_family = AF_INET;
-  test_addr.sin_port = htons(80);  // Assume router has web interface
-  inet_pton(AF_INET, "10.0.1.1", &test_addr.sin_addr);
-  if (::connect(test_sock, (sockaddr*)&test_addr, sizeof(test_addr)) < 0) {
-    ESP_LOGE(TAG, "Test connect to gateway failed: errno=%d", errno);
-  } else {
-    ESP_LOGI(TAG, "Test connect to gateway succeeded");
-    ::close(test_sock);
-  }
-
   ESP_LOGI(TAG, "Connecting to %s:%u", host_.c_str(), (unsigned)port_);
-  // this->close_();
+  //this->close_();
 
   ESP_LOGI(TAG, "Preparing Socket");
 
